@@ -36,6 +36,9 @@ kotlin {
     }
 
     sourceSets {
+        androidMain.dependencies {
+            implementation(libs.healthConnectClient)
+        }
         commonMain.dependencies {
             // put your multiplatform dependencies here
         }
@@ -47,9 +50,9 @@ kotlin {
 
 android {
     namespace = "com.khealth"
-    compileSdk = 34
+    compileSdk = libs.versions.targetSdk.get().toInt()
     defaultConfig {
-        minSdk = 26
+        minSdk = libs.versions.minSdk.get().toInt()
     }
     compileOptions {
         val javaVersion = JavaVersion.toVersion(libs.versions.java.get())

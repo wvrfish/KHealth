@@ -38,11 +38,12 @@ android {
 }
 
 dependencies {
-    implementation(projects.sampleShared)
+    debugImplementation(libs.androidSplashScreen)
+    debugImplementation(libs.compose.ui.tooling)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.compose.material3)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.tooling.preview)
-    implementation(libs.compose.material3)
-    implementation(libs.androidx.activity.compose)
     implementation(project(":library"))
-    debugImplementation(libs.compose.ui.tooling)
+    implementation(projects.sampleShared)
 }
