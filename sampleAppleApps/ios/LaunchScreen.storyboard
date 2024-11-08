@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
+    <device id="retina4_0" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--MainView-->
+        <scene sceneID="EHf-IW-A2E">
+            <objects>
+                <viewController title="MainView" id="01J-lp-oVM" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="SplashFG" translatesAutoresizingMaskIntoConstraints="NO" id="mOK-wh-224">
+                                <rect key="frame" x="96" y="220" width="128" height="128"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="128" id="1hn-qu-P2c"/>
+                                    <constraint firstAttribute="height" constant="128" id="eup-5d-PcH"/>
+                                    <constraint firstAttribute="width" secondItem="mOK-wh-224" secondAttribute="height" multiplier="1:1" id="spU-WH-Qyz"/>
+                                </constraints>
+                            </imageView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
+                        <color key="backgroundColor" name="SplashBG"/>
+                        <constraints>
+                            <constraint firstItem="mOK-wh-224" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" constant="96" id="H2G-j9-d1u"/>
+                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="bottom" secondItem="mOK-wh-224" secondAttribute="bottom" constant="220" id="aO3-ux-n0g"/>
+                            <constraint firstItem="mOK-wh-224" firstAttribute="top" secondItem="Bcu-3y-fUS" secondAttribute="top" constant="200" id="k01-EN-xVg"/>
+                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="trailing" secondItem="mOK-wh-224" secondAttribute="trailing" constant="96" id="wRe-fR-19y"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="52.5" y="375"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="SplashFG" width="1024" height="1024"/>
+        <namedColor name="SplashBG">
+            <color red="0.011764705882352941" green="0.11764705882352941" blue="0.20392156862745098" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
+</document>
