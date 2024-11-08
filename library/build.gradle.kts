@@ -40,10 +40,18 @@ kotlin {
             implementation(libs.healthConnectClient)
         }
         commonMain.dependencies {
-            // put your multiplatform dependencies here
+            implementation(libs.kermit)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+        }
+    }
+
+    targets.configureEach {
+        compilations.configureEach {
+            compileTaskProvider.get().compilerOptions {
+                freeCompilerArgs.add("-Xexpect-actual-classes")
+            }
         }
     }
 }

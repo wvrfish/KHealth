@@ -6,6 +6,7 @@ compose = "1.7.5"
 compose-material3 = "1.3.1"
 healthConnect = "1.1.0-alpha10"
 java = "21"
+kermit = "2.0.4"
 kotlin = "2.1.0-Beta2"
 minSdk = "28"
 targetSdk = "35"
@@ -18,6 +19,7 @@ compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 healthConnectClient = { module = "androidx.health.connect:connect-client", version.ref = "healthConnect" }
+kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 
 [plugins]

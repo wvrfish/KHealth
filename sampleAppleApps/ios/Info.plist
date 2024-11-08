@@ -48,5 +48,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>KHealth needs this permission to process and display your health related data</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>KHealth needs this permission to process and display your health related data</string>
 </dict>
 </plist>
