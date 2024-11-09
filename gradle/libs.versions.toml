@@ -9,6 +9,7 @@ healthConnect = "1.1.0-alpha10"
 java = "21"
 kermit = "2.0.4"
 kotlin = "2.1.0-Beta2"
+mavenPublish = "0.30.0"
 minSdk = "28"
 targetSdk = "35"
 
@@ -30,3 +31,4 @@ androidLibrary = { id = "com.android.library", version.ref = "agp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }
