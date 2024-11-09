@@ -38,7 +38,6 @@ android {
 }
 
 dependencies {
-    debugImplementation(libs.androidSplashScreen)
     debugImplementation(libs.compose.ui.tooling)
     implementation(libs.androidx.activity.compose)
     implementation(libs.compose.material3)
