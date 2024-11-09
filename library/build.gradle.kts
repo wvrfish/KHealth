@@ -40,6 +40,7 @@ kotlin {
             implementation(libs.healthConnectClient)
         }
         commonMain.dependencies {
+            implementation(libs.coroutines.core)
             implementation(libs.kermit)
         }
         commonTest.dependencies {

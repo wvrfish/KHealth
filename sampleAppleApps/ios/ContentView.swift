@@ -3,7 +3,15 @@ import sampleShared
 
 struct ContentView: View {
 	var body: some View {
-		Text(GreetingKt.greeting)
+        VStack(spacing: 24) {
+            Button("Check All Permissions") {
+                KHealthTestKt.checkAllPerms()
+            }
+
+            Button("Request All Permissions") {
+                KHealthTestKt.requestAllPerms()
+            }
+        }
 	}
 }
 

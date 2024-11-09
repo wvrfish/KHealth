@@ -11,13 +11,15 @@ import sampleShared
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text(GreetingKt.greeting)
+        VStack(spacing: 24) {
+            Button("Check All Permissions") {
+                KHealthTestKt.checkAllPerms()
+            }
+
+            Button("Request All Permissions") {
+                KHealthTestKt.requestAllPerms()
+            }
         }
-        .padding()
     }
 }
 
