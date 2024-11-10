@@ -95,8 +95,8 @@ actual class KHealth {
         try {
             val coroutineScope = CoroutineScope(continuation.context)
             store.requestAuthorizationToShareTypes(
-                typesToShare = getTypes(permissions) { it.writeRequested },
-                readTypes = getTypes(permissions) { it.readRequested },
+                typesToShare = getTypes(from = permissions, where = { it.write }),
+                readTypes = getTypes(from = permissions, where = { it.read }),
                 completion = { _, error ->
                     if (error != null) {
                         continuation.resumeWithException(Exception(error.localizedDescription))
@@ -114,113 +114,113 @@ actual class KHealth {
     }
 }
 
-private fun getTypes(permissions: Array<out KHPermission>, predicate: (KHPermission) -> Boolean) =
-    permissions.filter(predicate).mapNotNull { it.toHKObjectType() }.toSet()
+private fun getTypes(from: Array<out KHPermission>, where: (KHPermission) -> Boolean) =
+    from.filter(where).mapNotNull { it.toHKObjectType() }.toSet()
 
 private fun KHPermission.toHKObjectType(): HKObjectType? {
-    return when (this) {
-        is KHPermission.ActiveCaloriesBurned ->
+    return when (this.dataType) {
+        KHDataType.ActiveCaloriesBurned ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierActiveEnergyBurned)
 
-        is KHPermission.BasalMetabolicRate ->
+        KHDataType.BasalMetabolicRate ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBasalEnergyBurned)
 
-        is KHPermission.BloodGlucose ->
+        KHDataType.BloodGlucose ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBloodGlucose)
 
-        is KHPermission.BloodPressureSystolic ->
+        KHDataType.BloodPressureSystolic ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBloodPressureSystolic)
 
-        is KHPermission.BloodPressureDiastolic ->
+        KHDataType.BloodPressureDiastolic ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBloodPressureDiastolic)
 
-        is KHPermission.BodyFat ->
+        KHDataType.BodyFat ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBodyFatPercentage)
 
-        is KHPermission.BodyTemperature ->
+        KHDataType.BodyTemperature ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBodyTemperature)
 
-        is KHPermission.BodyWaterMass ->
+        KHDataType.BodyWaterMass ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBodyMass)
 
-        is KHPermission.BoneMass -> null
+        KHDataType.BoneMass -> null
 
-        is KHPermission.CervicalMucus ->
+        KHDataType.CervicalMucus ->
             HKObjectType.categoryTypeForIdentifier(HKCategoryTypeIdentifierCervicalMucusQuality)
 
-        is KHPermission.CyclingPedalingCadence -> null
+        KHDataType.CyclingPedalingCadence -> null
 
-        is KHPermission.Distance ->
+        KHDataType.Distance ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierDistanceWalkingRunning)
 
-        is KHPermission.ElevationGained -> null
+        KHDataType.ElevationGained -> null
 
         // TODO: Verify this
-        is KHPermission.ExerciseSession -> HKObjectType.workoutType()
+        KHDataType.ExerciseSession -> HKObjectType.workoutType()
 
-        is KHPermission.FloorsClimbed ->
+        KHDataType.FloorsClimbed ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierFlightsClimbed)
 
-        is KHPermission.HeartRate ->
+        KHDataType.HeartRate ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierHeartRate)
 
-        is KHPermission.HeartRateVariability ->
+        KHDataType.HeartRateVariability ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierHeartRateVariabilitySDNN)
 
-        is KHPermission.Height ->
+        KHDataType.Height ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierHeight)
 
-        is KHPermission.Hydration ->
+        KHDataType.Hydration ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierDietaryWater)
 
-        is KHPermission.IntermenstrualBleeding ->
+        KHDataType.IntermenstrualBleeding ->
             HKObjectType.categoryTypeForIdentifier(HKCategoryTypeIdentifierIntermenstrualBleeding)
 
-        is KHPermission.Menstruation -> null
+        KHDataType.Menstruation -> null
 
-        is KHPermission.LeanBodyMass ->
+        KHDataType.LeanBodyMass ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierLeanBodyMass)
 
-        is KHPermission.MenstruationFlow ->
+        KHDataType.MenstruationFlow ->
             HKObjectType.categoryTypeForIdentifier(HKCategoryTypeIdentifierMenstrualFlow)
 
-        is KHPermission.OvulationTest ->
+        KHDataType.OvulationTest ->
             HKObjectType.categoryTypeForIdentifier(HKCategoryTypeIdentifierOvulationTestResult)
 
-        is KHPermission.OxygenSaturation ->
+        KHDataType.OxygenSaturation ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierOxygenSaturation)
 
-        is KHPermission.Power ->
+        KHDataType.Power ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierCyclingPower)
 
-        is KHPermission.RespiratoryRate ->
+        KHDataType.RespiratoryRate ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierRespiratoryRate)
 
-        is KHPermission.RestingHeartRate ->
+        KHDataType.RestingHeartRate ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierRestingHeartRate)
 
-        is KHPermission.SexualActivity ->
+        KHDataType.SexualActivity ->
             HKObjectType.categoryTypeForIdentifier(HKCategoryTypeIdentifierSexualActivity)
 
-        is KHPermission.SleepSession ->
+        KHDataType.SleepSession ->
             HKObjectType.categoryTypeForIdentifier(HKCategoryTypeIdentifierSleepAnalysis)
 
-        is KHPermission.RunningSpeed ->
+        KHDataType.RunningSpeed ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierRunningSpeed)
 
-        is KHPermission.CyclingSpeed ->
+        KHDataType.CyclingSpeed ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierCyclingSpeed)
 
-        is KHPermission.StepCount ->
+        KHDataType.StepCount ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierStepCount)
 
-        is KHPermission.Vo2Max ->
+        KHDataType.Vo2Max ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierVO2Max)
 
-        is KHPermission.Weight ->
+        KHDataType.Weight ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBodyMass)
 
-        is KHPermission.WheelChairPushes ->
+        KHDataType.WheelChairPushes ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierPushCount)
     }
 }

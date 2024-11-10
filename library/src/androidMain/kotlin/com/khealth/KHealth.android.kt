@@ -133,54 +133,54 @@ private fun KHPermission.toPermissions(): Set<Pair<String, KHPermissionType>> {
     return buildSet {
         // TODO: Remove this when nullable code (which is iOS-specific) has been written
         @Suppress("RedundantNullableReturnType")
-        val record: KClass<out Record>? = when (entry) {
-            is KHPermission.ActiveCaloriesBurned -> ActiveCaloriesBurnedRecord::class
-            is KHPermission.BasalMetabolicRate -> BasalMetabolicRateRecord::class
-            is KHPermission.BloodGlucose -> BloodGlucoseRecord::class
+        val record: KClass<out Record>? = when (entry.dataType) {
+            KHDataType.ActiveCaloriesBurned -> ActiveCaloriesBurnedRecord::class
+            KHDataType.BasalMetabolicRate -> BasalMetabolicRateRecord::class
+            KHDataType.BloodGlucose -> BloodGlucoseRecord::class
 
-            is KHPermission.BloodPressureSystolic,
-            is KHPermission.BloodPressureDiastolic -> BloodPressureRecord::class
+            KHDataType.BloodPressureSystolic,
+            KHDataType.BloodPressureDiastolic -> BloodPressureRecord::class
 
-            is KHPermission.BodyFat -> BodyFatRecord::class
-            is KHPermission.BodyTemperature -> BodyTemperatureRecord::class
-            is KHPermission.BodyWaterMass -> BodyWaterMassRecord::class
-            is KHPermission.BoneMass -> BoneMassRecord::class
-            is KHPermission.CervicalMucus -> CervicalMucusRecord::class
-            is KHPermission.CyclingPedalingCadence -> CyclingPedalingCadenceRecord::class
-            is KHPermission.Distance -> DistanceRecord::class
-            is KHPermission.ElevationGained -> ElevationGainedRecord::class
-            is KHPermission.ExerciseSession -> ExerciseSessionRecord::class
-            is KHPermission.FloorsClimbed -> FloorsClimbedRecord::class
-            is KHPermission.HeartRate -> HeartRateRecord::class
-            is KHPermission.HeartRateVariability -> HeartRateVariabilityRmssdRecord::class
-            is KHPermission.Height -> HeightRecord::class
-            is KHPermission.Hydration -> HeartRateVariabilityRmssdRecord::class
-            is KHPermission.IntermenstrualBleeding -> IntermenstrualBleedingRecord::class
-            is KHPermission.Menstruation -> MenstruationPeriodRecord::class
-            is KHPermission.LeanBodyMass -> LeanBodyMassRecord::class
-            is KHPermission.MenstruationFlow -> MenstruationFlowRecord::class
-            is KHPermission.OvulationTest -> OvulationTestRecord::class
-            is KHPermission.OxygenSaturation -> OxygenSaturationRecord::class
-            is KHPermission.Power -> PowerRecord::class
-            is KHPermission.RespiratoryRate -> RespiratoryRateRecord::class
-            is KHPermission.RestingHeartRate -> RestingHeartRateRecord::class
-            is KHPermission.SexualActivity -> SexualActivityRecord::class
-            is KHPermission.SleepSession -> SleepSessionRecord::class
+            KHDataType.BodyFat -> BodyFatRecord::class
+            KHDataType.BodyTemperature -> BodyTemperatureRecord::class
+            KHDataType.BodyWaterMass -> BodyWaterMassRecord::class
+            KHDataType.BoneMass -> BoneMassRecord::class
+            KHDataType.CervicalMucus -> CervicalMucusRecord::class
+            KHDataType.CyclingPedalingCadence -> CyclingPedalingCadenceRecord::class
+            KHDataType.Distance -> DistanceRecord::class
+            KHDataType.ElevationGained -> ElevationGainedRecord::class
+            KHDataType.ExerciseSession -> ExerciseSessionRecord::class
+            KHDataType.FloorsClimbed -> FloorsClimbedRecord::class
+            KHDataType.HeartRate -> HeartRateRecord::class
+            KHDataType.HeartRateVariability -> HeartRateVariabilityRmssdRecord::class
+            KHDataType.Height -> HeightRecord::class
+            KHDataType.Hydration -> HeartRateVariabilityRmssdRecord::class
+            KHDataType.IntermenstrualBleeding -> IntermenstrualBleedingRecord::class
+            KHDataType.Menstruation -> MenstruationPeriodRecord::class
+            KHDataType.LeanBodyMass -> LeanBodyMassRecord::class
+            KHDataType.MenstruationFlow -> MenstruationFlowRecord::class
+            KHDataType.OvulationTest -> OvulationTestRecord::class
+            KHDataType.OxygenSaturation -> OxygenSaturationRecord::class
+            KHDataType.Power -> PowerRecord::class
+            KHDataType.RespiratoryRate -> RespiratoryRateRecord::class
+            KHDataType.RestingHeartRate -> RestingHeartRateRecord::class
+            KHDataType.SexualActivity -> SexualActivityRecord::class
+            KHDataType.SleepSession -> SleepSessionRecord::class
 
-            is KHPermission.RunningSpeed,
-            is KHPermission.CyclingSpeed -> SpeedRecord::class
+            KHDataType.RunningSpeed,
+            KHDataType.CyclingSpeed -> SpeedRecord::class
 
-            is KHPermission.StepCount -> StepsRecord::class
-            is KHPermission.Vo2Max -> Vo2MaxRecord::class
-            is KHPermission.Weight -> WeightRecord::class
-            is KHPermission.WheelChairPushes -> WheelchairPushesRecord::class
+            KHDataType.StepCount -> StepsRecord::class
+            KHDataType.Vo2Max -> Vo2MaxRecord::class
+            KHDataType.Weight -> WeightRecord::class
+            KHDataType.WheelChairPushes -> WheelchairPushesRecord::class
         }
 
         record?.let { safeRecord ->
-            if (entry.readRequested) {
+            if (entry.read) {
                 add(HealthPermission.getReadPermission(safeRecord) to KHPermissionType.Read)
             }
-            if (entry.writeRequested) {
+            if (entry.write) {
                 add(HealthPermission.getWritePermission(safeRecord) to KHPermissionType.Write)
             }
         }
