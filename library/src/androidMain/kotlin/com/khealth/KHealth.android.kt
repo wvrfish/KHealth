@@ -69,7 +69,7 @@ actual class KHealth(private val activity: ComponentActivity) : CoroutineScope {
     actual suspend fun checkPermissions(
         vararg permissions: KHPermission
     ): Set<KHPermissionWithStatus> {
-        if (!isHealthStoreAvailable) return emptySet()
+        check(isHealthStoreAvailable) { "HealthConnect is not available for the current device!" }
         val grantedPermissions = client.permissionController.getGrantedPermissions()
         return permissions.toPermissionsWithStatuses(grantedPermissions).toSet()
     }
@@ -77,8 +77,12 @@ actual class KHealth(private val activity: ComponentActivity) : CoroutineScope {
     actual suspend fun requestPermissions(
         vararg permissions: KHPermission
     ): Set<KHPermissionWithStatus> {
+        check(isHealthStoreAvailable) { "HealthConnect is not available for the current device!" }
+        check(::permissionsLauncher.isInitialized) {
+            "Please make sure to call kHealth.initialise() before trying to access any other " +
+                    "methods!"
+        }
         try {
-            if (!isHealthStoreAvailable) return emptySet()
 
             val permissionSets = permissions.map { entry -> entry.toPermissions() }
             permissionsLauncher.launch(permissionSets.flatten().map { it.first }.toSet())
