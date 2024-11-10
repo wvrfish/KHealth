@@ -10,6 +10,6 @@ object HealthStoreNotInitialisedException : Exception(
 )
 
 object WriteActiveCaloriesBurnedException : Exception(
-    "Writing ActiveEnergyBurned to HealthKit store failed! " +
-            "Check if you have the permission to write ActiveEnergyBurned!"
+    "Writing ${KHDataType.ActiveCaloriesBurned} to HealthKit store failed! " +
+            "Please check if you have the permission to write ${KHDataType.ActiveCaloriesBurned}."
 )

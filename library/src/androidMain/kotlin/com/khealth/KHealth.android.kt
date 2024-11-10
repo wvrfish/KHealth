@@ -47,22 +47,41 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.datetime.toJavaInstant
-import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 
-actual class KHealth(private val activity: ComponentActivity) : CoroutineScope {
-    private val permissionsChannel = Channel<Set<String>>()
+actual class KHealth {
+    constructor(activity: ComponentActivity) {
+        this.activity = activity
+        this.coroutineScope = CoroutineScope(SupervisorJob())
+    }
+
+    internal constructor(
+        activity: ComponentActivity,
+        client: HealthConnectClient,
+        coroutineScope: CoroutineScope,
+        permissionsLauncher: ActivityResultLauncher<Set<String>>
+    ) {
+        this.activity = activity
+        this.client = client
+        this.permissionsLauncher = permissionsLauncher
+        this.coroutineScope = coroutineScope
+    }
+
+    private var activity: ComponentActivity
+    private lateinit var client: HealthConnectClient
+    private var coroutineScope: CoroutineScope
     private lateinit var permissionsLauncher: ActivityResultLauncher<Set<String>>
 
-    private val client get() = HealthConnectClient.getOrCreate(activity)
-
-    override val coroutineContext: CoroutineContext get() = SupervisorJob()
+    private val permissionsChannel = Channel<Set<String>>()
 
     actual fun initialise() {
-        val permissionContract = PermissionController.createRequestPermissionResultContract()
-        permissionsLauncher = activity.registerForActivityResult(permissionContract) {
-            launch {
-                permissionsChannel.send(it)
+        if (!::client.isInitialized) client = HealthConnectClient.getOrCreate(activity)
+        if (!::permissionsLauncher.isInitialized) {
+            val permissionContract = PermissionController.createRequestPermissionResultContract()
+            permissionsLauncher = activity.registerForActivityResult(permissionContract) {
+                coroutineScope.launch {
+                    permissionsChannel.send(it)
+                }
             }
         }
     }
@@ -121,8 +140,12 @@ actual class KHealth(private val activity: ComponentActivity) : CoroutineScope {
                 else -> KHWriteResponse.Success
             }
         } catch (e: Exception) {
-            logError(e)
-            return KHWriteResponse.Failed(e)
+            val parsedException = when (e) {
+                is SecurityException -> WriteActiveCaloriesBurnedException
+                else -> e
+            }
+            logError(parsedException)
+            return KHWriteResponse.Failed(parsedException)
         }
     }
 }

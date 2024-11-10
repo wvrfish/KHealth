@@ -51,7 +51,15 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 actual class KHealth {
-    private val store = HKHealthStore()
+    constructor() {
+        this.store = HKHealthStore()
+    }
+
+    internal constructor(store: HKHealthStore) {
+        this.store = store
+    }
+
+    private var store: HKHealthStore
 
     actual val isHealthStoreAvailable: Boolean
         get() {
@@ -113,6 +121,7 @@ actual class KHealth {
                 readTypes = getTypes(from = permissions, where = { it.read }),
                 completion = { _, error ->
                     if (error != null) {
+                        logError(error.toException())
                         continuation.resumeWithException(Exception(error.localizedDescription))
                     } else {
                         coroutineScope.launch {
@@ -147,22 +156,26 @@ actual class KHealth {
 
             store.saveObjects(samples) { success, error ->
                 when {
-                    error != null -> continuation.resume(
-                        KHWriteResponse.Failed(exception = error.toException())
-                    )
+                    error != null -> {
+                        val exception = error.toException()
+                        val parsedException = when {
+                            exception.message?.contains(HKNotAuthorizedMessage) == true ->
+                                WriteActiveCaloriesBurnedException
+
+                            else -> exception
+                        }
+                        logError(parsedException)
+                        continuation.resume(KHWriteResponse.Failed(parsedException))
+                    }
 
                     success -> continuation.resume(KHWriteResponse.Success)
-
                     else -> continuation.resume(
-                        KHWriteResponse.Failed(
-                            WriteActiveCaloriesBurnedException
-                        )
+                        KHWriteResponse.Failed(WriteActiveCaloriesBurnedException)
                     )
                 }
             }
         } catch (e: Exception) {
             logError(e)
-            continuation.resume(KHWriteResponse.Failed(e))
         }
     }
 }
@@ -293,3 +306,4 @@ private fun KHUnit.Energy.toNativeQuantity(): HKQuantity {
 }
 
 private fun NSError.toException() = Exception(this.localizedDescription)
+private const val HKNotAuthorizedMessage = "Authorization is not determined"
