@@ -2,9 +2,15 @@ package com.khealth.sample
 
 import com.khealth.KHDataType
 import com.khealth.KHPermission
+import com.khealth.KHPermissionStatus
+import com.khealth.KHPermissionWithStatus
+import com.khealth.KHRecord
+import com.khealth.KHUnit
 import com.khealth.KHealth
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlin.time.Duration.Companion.minutes
 
 private val permissions = arrayOf(
     KHPermission(dataType = KHDataType.ActiveCaloriesBurned, read = true, write = true),
@@ -45,24 +51,47 @@ private val permissions = arrayOf(
     KHPermission(dataType = KHDataType.WheelChairPushes, read = true, write = true),
 )
 
-private val kHealth = KHealth()
-
 private val coroutineScope = MainScope()
 
-fun checkAllPerms() {
+fun sampleCheckAllPerms(kHealth: KHealth) {
     coroutineScope.launch {
         val response = kHealth.checkPermissions(*permissions)
-        println("check response is: $response")
+        printResponse(response)
     }
 }
 
-fun requestAllPerms() {
+fun sampleRequestAllPerms(kHealth: KHealth) {
     coroutineScope.launch {
         try {
             val response = kHealth.requestPermissions(*permissions)
-            println("request response is: $response")
-        } catch (t: Throwable) {
-            println("Error is: $t")
+            printResponse(response)
+        } catch (e: Exception) {
+            println("Error is: $e")
         }
     }
+}
+
+fun sampleWriteData(kHealth: KHealth) {
+    coroutineScope.launch {
+        val activeCaloriesBurnedResponse = kHealth.writeActiveCaloriesBurned(
+            KHRecord(
+                unitValue = KHUnit.Energy.Kilocalorie(3.4f),
+                startDateTime = Clock.System.now().minus(10.minutes),
+                endDateTime = Clock.System.now(),
+            )
+        )
+        println("activeCaloriesBurnedResponse: $activeCaloriesBurnedResponse")
+    }
+}
+
+private fun printResponse(response: Set<KHPermissionWithStatus>) {
+    println(
+        "Request Response: ${
+            response.joinToString {
+                "${it.permission.dataType} -> " +
+                        (if (it.readStatus == KHPermissionStatus.Granted) "R" else "") +
+                        if (it.writeStatus == KHPermissionStatus.Granted) "+W" else ""
+            }
+        }"
+    )
 }

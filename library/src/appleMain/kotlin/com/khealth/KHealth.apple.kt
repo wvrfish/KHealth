@@ -3,6 +3,8 @@ package com.khealth
 import kotlinx.cinterop.UnsafeNumber
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.datetime.toNSDate
+import platform.Foundation.NSError
 import platform.HealthKit.HKAuthorizationStatusNotDetermined
 import platform.HealthKit.HKAuthorizationStatusSharingAuthorized
 import platform.HealthKit.HKAuthorizationStatusSharingDenied
@@ -14,6 +16,9 @@ import platform.HealthKit.HKCategoryTypeIdentifierSexualActivity
 import platform.HealthKit.HKCategoryTypeIdentifierSleepAnalysis
 import platform.HealthKit.HKHealthStore
 import platform.HealthKit.HKObjectType
+import platform.HealthKit.HKQuantity
+import platform.HealthKit.HKQuantitySample
+import platform.HealthKit.HKQuantityType
 import platform.HealthKit.HKQuantityTypeIdentifierActiveEnergyBurned
 import platform.HealthKit.HKQuantityTypeIdentifierBasalEnergyBurned
 import platform.HealthKit.HKQuantityTypeIdentifierBloodGlucose
@@ -38,6 +43,9 @@ import platform.HealthKit.HKQuantityTypeIdentifierRestingHeartRate
 import platform.HealthKit.HKQuantityTypeIdentifierRunningSpeed
 import platform.HealthKit.HKQuantityTypeIdentifierStepCount
 import platform.HealthKit.HKQuantityTypeIdentifierVO2Max
+import platform.HealthKit.HKUnit
+import platform.HealthKit.jouleUnit
+import platform.HealthKit.kilocalorieUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -49,10 +57,14 @@ actual class KHealth {
         get() {
             return try {
                 HKHealthStore.isHealthDataAvailable()
-            } catch (t: Throwable) {
+            } catch (e: Exception) {
                 false
             }
         }
+
+    internal actual fun verifyHealthStoreAvailability() {
+        if (!isHealthStoreAvailable) throw HealthStoreNotAvailableException
+    }
 
     actual fun initialise() = Unit
 
@@ -61,11 +73,12 @@ actual class KHealth {
         vararg permissions: KHPermission
     ): Set<KHPermissionWithStatus> {
         try {
+            verifyHealthStoreAvailability()
             val permissionsWithStatuses = permissions.mapNotNull { permission ->
-                val type = permission.toHKObjectType()
+                val type = permission.dataType.toHKObjectTypeOrNull()
 
                 if (type == null) {
-                    println("Type for $permission not found!")
+                    logDebug("Type for $permission not found!")
                     return@mapNotNull null
                 }
 
@@ -83,8 +96,8 @@ actual class KHealth {
             }
 
             return permissionsWithStatuses.toSet()
-        } catch (t: Throwable) {
-            logError(t)
+        } catch (e: Exception) {
+            logError(e)
             return emptySet()
         }
     }
@@ -93,6 +106,7 @@ actual class KHealth {
         vararg permissions: KHPermission
     ): Set<KHPermissionWithStatus> = suspendCoroutine { continuation ->
         try {
+            verifyHealthStoreAvailability()
             val coroutineScope = CoroutineScope(continuation.context)
             store.requestAuthorizationToShareTypes(
                 typesToShare = getTypes(from = permissions, where = { it.write }),
@@ -107,18 +121,57 @@ actual class KHealth {
                     }
                 }
             )
-        } catch (t: Throwable) {
-            logError(t)
+        } catch (e: Exception) {
+            logError(e)
             continuation.resume(emptySet())
+        }
+    }
+
+    actual suspend fun writeActiveCaloriesBurned(
+        vararg records: KHRecord<KHUnit.Energy>
+    ): KHWriteResponse = suspendCoroutine { continuation ->
+        try {
+            verifyHealthStoreAvailability()
+
+            val hkObjectType =
+                KHDataType.ActiveCaloriesBurned.toHKObjectTypeOrNull() ?: return@suspendCoroutine
+
+            val samples = records.map { record ->
+                HKQuantitySample.quantitySampleWithType(
+                    quantityType = hkObjectType as HKQuantityType,
+                    quantity = record.unitValue.toNativeQuantity(),
+                    startDate = record.startDateTime.toNSDate(),
+                    endDate = record.endDateTime.toNSDate(),
+                )
+            }
+
+            store.saveObjects(samples) { success, error ->
+                when {
+                    error != null -> continuation.resume(
+                        KHWriteResponse.Failed(exception = error.toException())
+                    )
+
+                    success -> continuation.resume(KHWriteResponse.Success)
+
+                    else -> continuation.resume(
+                        KHWriteResponse.Failed(
+                            WriteActiveCaloriesBurnedException
+                        )
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            logError(e)
+            continuation.resume(KHWriteResponse.Failed(e))
         }
     }
 }
 
 private fun getTypes(from: Array<out KHPermission>, where: (KHPermission) -> Boolean) =
-    from.filter(where).mapNotNull { it.toHKObjectType() }.toSet()
+    from.filter(where).mapNotNull { it.dataType.toHKObjectTypeOrNull() }.toSet()
 
-private fun KHPermission.toHKObjectType(): HKObjectType? {
-    return when (this.dataType) {
+private fun KHDataType.toHKObjectTypeOrNull(): HKObjectType? {
+    return when (this) {
         KHDataType.ActiveCaloriesBurned ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierActiveEnergyBurned)
 
@@ -224,3 +277,19 @@ private fun KHPermission.toHKObjectType(): HKObjectType? {
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierPushCount)
     }
 }
+
+private fun KHUnit.Energy.toNativeQuantity(): HKQuantity {
+    return when (this) {
+        is KHUnit.Energy.Kilocalorie -> HKQuantity.quantityWithUnit(
+            unit = HKUnit.kilocalorieUnit(),
+            doubleValue = value.toDouble()
+        )
+
+        is KHUnit.Energy.Joule -> HKQuantity.quantityWithUnit(
+            unit = HKUnit.jouleUnit(),
+            doubleValue = value.toDouble()
+        )
+    }
+}
+
+private fun NSError.toException() = Exception(this.localizedDescription)

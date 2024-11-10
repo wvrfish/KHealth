@@ -8,6 +8,7 @@ healthConnect = "1.1.0-alpha10"
 java = "21"
 kermit = "2.0.4"
 kotlin = "2.1.0-RC"
+kotlin-dateTime = "0.6.1"
 mavenPublish = "0.30.0"
 minSdk = "28"
 targetSdk = "35"
@@ -21,6 +22,7 @@ compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview"
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 healthConnectClient = { module = "androidx.health.connect:connect-client", version.ref = "healthConnect" }
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
+kotlin-dateTime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlin-dateTime" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 
 [plugins]

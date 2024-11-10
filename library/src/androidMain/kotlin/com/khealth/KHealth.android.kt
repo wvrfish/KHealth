@@ -39,10 +39,14 @@ import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.Vo2MaxRecord
 import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.records.WheelchairPushesRecord
+import androidx.health.connect.client.units.Energy
+import androidx.health.connect.client.units.joules
+import androidx.health.connect.client.units.kilojoules
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.datetime.toJavaInstant
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 
@@ -66,10 +70,14 @@ actual class KHealth(private val activity: ComponentActivity) : CoroutineScope {
     actual val isHealthStoreAvailable: Boolean
         get() = HealthConnectClient.getSdkStatus(activity) == HealthConnectClient.SDK_AVAILABLE
 
+    internal actual fun verifyHealthStoreAvailability() {
+        if (!isHealthStoreAvailable) throw HealthStoreNotAvailableException
+    }
+
     actual suspend fun checkPermissions(
         vararg permissions: KHPermission
     ): Set<KHPermissionWithStatus> {
-        check(isHealthStoreAvailable) { "HealthConnect is not available for the current device!" }
+        verifyHealthStoreAvailability()
         val grantedPermissions = client.permissionController.getGrantedPermissions()
         return permissions.toPermissionsWithStatuses(grantedPermissions).toSet()
     }
@@ -77,106 +85,52 @@ actual class KHealth(private val activity: ComponentActivity) : CoroutineScope {
     actual suspend fun requestPermissions(
         vararg permissions: KHPermission
     ): Set<KHPermissionWithStatus> {
-        check(isHealthStoreAvailable) { "HealthConnect is not available for the current device!" }
-        check(::permissionsLauncher.isInitialized) {
-            "Please make sure to call kHealth.initialise() before trying to access any other " +
-                    "methods!"
-        }
-        try {
+        verifyHealthStoreAvailability()
+        if (!::permissionsLauncher.isInitialized) throw HealthStoreNotInitialisedException
+        val permissionSets = permissions.map { entry -> entry.toPermissions() }
+        permissionsLauncher.launch(permissionSets.flatten().map { it.first }.toSet())
 
-            val permissionSets = permissions.map { entry -> entry.toPermissions() }
-            permissionsLauncher.launch(permissionSets.flatten().map { it.first }.toSet())
-
-            val grantedPermissions = permissionsChannel.receive()
-            return permissions.toPermissionsWithStatuses(grantedPermissions).toSet()
-        } catch (t: Throwable) {
-            logError(t)
-            return emptySet()
-        }
+        val grantedPermissions = permissionsChannel.receive()
+        return permissions.toPermissionsWithStatuses(grantedPermissions).toSet()
     }
 
-    private fun Array<out KHPermission>.toPermissionsWithStatuses(
-        grantedPermissions: Set<String>
-    ): List<KHPermissionWithStatus> = this.mapIndexed { index, entry ->
-        val permissionSet = entry.toPermissions()
-
-        val readGranted = permissionSet.firstOrNull { it.second == KHPermissionType.Read }
-            ?.first
-            ?.let(grantedPermissions::contains)
-
-        val readStatus = readGranted
-            ?.let { granted ->
-                if (granted) KHPermissionStatus.Granted else KHPermissionStatus.Denied
+    actual suspend fun writeActiveCaloriesBurned(
+        vararg records: KHRecord<KHUnit.Energy>
+    ): KHWriteResponse {
+        try {
+            verifyHealthStoreAvailability()
+            val hcRecords = records.map { record ->
+                ActiveCaloriesBurnedRecord(
+                    energy = record.unitValue.toNativeEnergy(),
+                    startTime = record.startDateTime.toJavaInstant(),
+                    endTime = record.endDateTime.toJavaInstant(),
+                    startZoneOffset = null,
+                    endZoneOffset = null,
+                )
             }
-            ?: KHPermissionStatus.NotDetermined
+            logDebug("Inserting ${hcRecords.size} ${KHDataType.ActiveCaloriesBurned} records...")
+            val responseIDs = client.insertRecords(hcRecords).recordIdsList
+            logDebug("Inserted ${responseIDs.size} ${KHDataType.ActiveCaloriesBurned} records")
+            return when {
+                responseIDs.size != hcRecords.size && responseIDs.isEmpty() -> {
+                    KHWriteResponse.Failed(Exception("No records were written!"))
+                }
 
-        val writeGranted = permissionSet.firstOrNull { it.second == KHPermissionType.Write }
-            ?.first
-            ?.let(grantedPermissions::contains)
+                responseIDs.size != hcRecords.size -> KHWriteResponse.SomeFailed
 
-        val writeStatus = writeGranted
-            ?.let { granted ->
-                if (granted) KHPermissionStatus.Granted else KHPermissionStatus.Denied
+                else -> KHWriteResponse.Success
             }
-            ?: KHPermissionStatus.NotDetermined
-
-        KHPermissionWithStatus(
-            permission = this[index],
-            readStatus = readStatus,
-            writeStatus = writeStatus,
-        )
+        } catch (e: Exception) {
+            logError(e)
+            return KHWriteResponse.Failed(e)
+        }
     }
 }
 
 private fun KHPermission.toPermissions(): Set<Pair<String, KHPermissionType>> {
     val entry = this@toPermissions
     return buildSet {
-        // TODO: Remove this when nullable code (which is iOS-specific) has been written
-        @Suppress("RedundantNullableReturnType")
-        val record: KClass<out Record>? = when (entry.dataType) {
-            KHDataType.ActiveCaloriesBurned -> ActiveCaloriesBurnedRecord::class
-            KHDataType.BasalMetabolicRate -> BasalMetabolicRateRecord::class
-            KHDataType.BloodGlucose -> BloodGlucoseRecord::class
-
-            KHDataType.BloodPressureSystolic,
-            KHDataType.BloodPressureDiastolic -> BloodPressureRecord::class
-
-            KHDataType.BodyFat -> BodyFatRecord::class
-            KHDataType.BodyTemperature -> BodyTemperatureRecord::class
-            KHDataType.BodyWaterMass -> BodyWaterMassRecord::class
-            KHDataType.BoneMass -> BoneMassRecord::class
-            KHDataType.CervicalMucus -> CervicalMucusRecord::class
-            KHDataType.CyclingPedalingCadence -> CyclingPedalingCadenceRecord::class
-            KHDataType.Distance -> DistanceRecord::class
-            KHDataType.ElevationGained -> ElevationGainedRecord::class
-            KHDataType.ExerciseSession -> ExerciseSessionRecord::class
-            KHDataType.FloorsClimbed -> FloorsClimbedRecord::class
-            KHDataType.HeartRate -> HeartRateRecord::class
-            KHDataType.HeartRateVariability -> HeartRateVariabilityRmssdRecord::class
-            KHDataType.Height -> HeightRecord::class
-            KHDataType.Hydration -> HeartRateVariabilityRmssdRecord::class
-            KHDataType.IntermenstrualBleeding -> IntermenstrualBleedingRecord::class
-            KHDataType.Menstruation -> MenstruationPeriodRecord::class
-            KHDataType.LeanBodyMass -> LeanBodyMassRecord::class
-            KHDataType.MenstruationFlow -> MenstruationFlowRecord::class
-            KHDataType.OvulationTest -> OvulationTestRecord::class
-            KHDataType.OxygenSaturation -> OxygenSaturationRecord::class
-            KHDataType.Power -> PowerRecord::class
-            KHDataType.RespiratoryRate -> RespiratoryRateRecord::class
-            KHDataType.RestingHeartRate -> RestingHeartRateRecord::class
-            KHDataType.SexualActivity -> SexualActivityRecord::class
-            KHDataType.SleepSession -> SleepSessionRecord::class
-
-            KHDataType.RunningSpeed,
-            KHDataType.CyclingSpeed -> SpeedRecord::class
-
-            KHDataType.StepCount -> StepsRecord::class
-            KHDataType.Vo2Max -> Vo2MaxRecord::class
-            KHDataType.Weight -> WeightRecord::class
-            KHDataType.WheelChairPushes -> WheelchairPushesRecord::class
-        }
-
-        record?.let { safeRecord ->
+        entry.dataType.toRecordClass()?.let { safeRecord ->
             if (entry.read) {
                 add(HealthPermission.getReadPermission(safeRecord) to KHPermissionType.Read)
             }
@@ -185,6 +139,88 @@ private fun KHPermission.toPermissions(): Set<Pair<String, KHPermissionType>> {
             }
         }
     }
+}
+
+private fun Array<out KHPermission>.toPermissionsWithStatuses(
+    grantedPermissions: Set<String>
+): List<KHPermissionWithStatus> = this.mapIndexed { index, entry ->
+    val permissionSet = entry.toPermissions()
+
+    val readGranted = permissionSet.firstOrNull { it.second == KHPermissionType.Read }
+        ?.first
+        ?.let(grantedPermissions::contains)
+
+    val readStatus = readGranted
+        ?.let { granted ->
+            if (granted) KHPermissionStatus.Granted else KHPermissionStatus.Denied
+        }
+        ?: KHPermissionStatus.NotDetermined
+
+    val writeGranted = permissionSet.firstOrNull { it.second == KHPermissionType.Write }
+        ?.first
+        ?.let(grantedPermissions::contains)
+
+    val writeStatus = writeGranted
+        ?.let { granted ->
+            if (granted) KHPermissionStatus.Granted else KHPermissionStatus.Denied
+        }
+        ?: KHPermissionStatus.NotDetermined
+
+    KHPermissionWithStatus(
+        permission = this[index],
+        readStatus = readStatus,
+        writeStatus = writeStatus,
+    )
+}
+
+// TODO: Remove this when nullable code (which is iOS-specific) has been written
+@Suppress("RedundantNullableReturnType")
+private fun KHDataType.toRecordClass(): KClass<out Record>? = when (this) {
+    KHDataType.ActiveCaloriesBurned -> ActiveCaloriesBurnedRecord::class
+    KHDataType.BasalMetabolicRate -> BasalMetabolicRateRecord::class
+    KHDataType.BloodGlucose -> BloodGlucoseRecord::class
+
+    KHDataType.BloodPressureSystolic,
+    KHDataType.BloodPressureDiastolic -> BloodPressureRecord::class
+
+    KHDataType.BodyFat -> BodyFatRecord::class
+    KHDataType.BodyTemperature -> BodyTemperatureRecord::class
+    KHDataType.BodyWaterMass -> BodyWaterMassRecord::class
+    KHDataType.BoneMass -> BoneMassRecord::class
+    KHDataType.CervicalMucus -> CervicalMucusRecord::class
+    KHDataType.CyclingPedalingCadence -> CyclingPedalingCadenceRecord::class
+    KHDataType.Distance -> DistanceRecord::class
+    KHDataType.ElevationGained -> ElevationGainedRecord::class
+    KHDataType.ExerciseSession -> ExerciseSessionRecord::class
+    KHDataType.FloorsClimbed -> FloorsClimbedRecord::class
+    KHDataType.HeartRate -> HeartRateRecord::class
+    KHDataType.HeartRateVariability -> HeartRateVariabilityRmssdRecord::class
+    KHDataType.Height -> HeightRecord::class
+    KHDataType.Hydration -> HeartRateVariabilityRmssdRecord::class
+    KHDataType.IntermenstrualBleeding -> IntermenstrualBleedingRecord::class
+    KHDataType.Menstruation -> MenstruationPeriodRecord::class
+    KHDataType.LeanBodyMass -> LeanBodyMassRecord::class
+    KHDataType.MenstruationFlow -> MenstruationFlowRecord::class
+    KHDataType.OvulationTest -> OvulationTestRecord::class
+    KHDataType.OxygenSaturation -> OxygenSaturationRecord::class
+    KHDataType.Power -> PowerRecord::class
+    KHDataType.RespiratoryRate -> RespiratoryRateRecord::class
+    KHDataType.RestingHeartRate -> RestingHeartRateRecord::class
+    KHDataType.SexualActivity -> SexualActivityRecord::class
+    KHDataType.SleepSession -> SleepSessionRecord::class
+
+    KHDataType.RunningSpeed,
+    KHDataType.CyclingSpeed -> SpeedRecord::class
+
+    KHDataType.StepCount -> StepsRecord::class
+    KHDataType.Vo2Max -> Vo2MaxRecord::class
+    KHDataType.Weight -> WeightRecord::class
+    KHDataType.WheelChairPushes -> WheelchairPushesRecord::class
+}
+
+private fun KHUnit.Energy.toNativeEnergy(): Energy = when (this) {
+    is KHUnit.Energy.Joule -> this.value.joules
+    is KHUnit.Energy.Kilocalorie -> this.value.kilojoules
 }
 
 private enum class KHPermissionType { Read, Write }

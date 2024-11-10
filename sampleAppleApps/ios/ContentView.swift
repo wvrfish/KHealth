@@ -5,11 +5,15 @@ struct ContentView: View {
 	var body: some View {
         VStack(spacing: 24) {
             Button("Check All Permissions") {
-                KHealthSampleKt.checkAllPerms()
+                KHealthSample_appleKt.sampleCheckAllPerms()
             }
 
             Button("Request All Permissions") {
-                KHealthSampleKt.requestAllPerms()
+                KHealthSample_appleKt.sampleRequestAllPerms()
+            }
+            
+            Button("Write Data") {
+                KHealthSample_appleKt.sampleWriteData()
             }
         }
 	}
