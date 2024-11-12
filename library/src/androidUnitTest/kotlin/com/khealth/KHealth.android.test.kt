@@ -101,77 +101,87 @@ class KHealthTests {
             read = true,
             write = false,
         )
-        val deniedReadResult = setOf(
-            KHPermissionWithStatus(
-                permission = allGrantedPermission,
-                readStatus = KHPermissionStatus.Denied,
-                writeStatus = KHPermissionStatus.Granted,
-            )
-        )
-        val allGrantedResult = setOf(
-            KHPermissionWithStatus(
-                permission = allGrantedPermission,
-                readStatus = KHPermissionStatus.Granted,
-                writeStatus = KHPermissionStatus.Granted,
-            )
-        )
-        val deniedWriteResult = setOf(
-            KHPermissionWithStatus(
-                permission = allGrantedPermission,
-                readStatus = KHPermissionStatus.Granted,
-                writeStatus = KHPermissionStatus.Denied,
-            )
-        )
-        val notDeterminedGrantedResult = setOf(
-            KHPermissionWithStatus(
-                permission = writeOnlyPermission,
-                readStatus = KHPermissionStatus.NotDetermined,
-                writeStatus = KHPermissionStatus.Granted,
-            )
-        )
-        val grantedNotDeterminedResult = setOf(
-            KHPermissionWithStatus(
-                permission = readOnlyPermission,
-                readStatus = KHPermissionStatus.Granted,
-                writeStatus = KHPermissionStatus.NotDetermined,
-            )
-        )
 
-        // Case 1: When system grants all
+        // Case 1: When system grants all permissions
         everySuspend { permissionController.getGrantedPermissions() } returns setOf(
             READ_PERMISSION,
             WRITE_PERMISSION
         )
         // Then allGranted request results in allGranted response
-        assertEquals(allGrantedResult, sut.checkPermissions(allGrantedPermission))
+        assertEquals(
+            setOf(
+                KHPermissionWithStatus(
+                    permission = allGrantedPermission,
+                    readStatus = KHPermissionStatus.Granted,
+                    writeStatus = KHPermissionStatus.Granted,
+                )
+            ),
+            sut.checkPermissions(allGrantedPermission)
+        )
 
-        // Case 2: When system grants WRITE only
+        // Case 2: When system grants WRITE only permissions
         everySuspend { permissionController.getGrantedPermissions() } returns setOf(
             WRITE_PERMISSION
         )
         // Then allGranted request results in deniedRead response
-        assertEquals(deniedReadResult, sut.checkPermissions(allGrantedPermission))
+        assertEquals(
+            setOf(
+                KHPermissionWithStatus(
+                    permission = allGrantedPermission,
+                    readStatus = KHPermissionStatus.Denied,
+                    writeStatus = KHPermissionStatus.Granted,
+                )
+            ),
+            sut.checkPermissions(allGrantedPermission)
+        )
 
-        // Case 3: When system grants READ only
+        // Case 3: When system grants READ only permissions
         everySuspend { permissionController.getGrantedPermissions() } returns setOf(
             READ_PERMISSION
         )
         // Then allGranted request results in deniedWrite response
-        assertEquals(deniedWriteResult, sut.checkPermissions(allGrantedPermission))
+        assertEquals(
+            setOf(
+                KHPermissionWithStatus(
+                    permission = allGrantedPermission,
+                    readStatus = KHPermissionStatus.Granted,
+                    writeStatus = KHPermissionStatus.Denied,
+                )
+            ),
+            sut.checkPermissions(allGrantedPermission)
+        )
 
-        // Case 4: When system grants WRITE only
+        // Case 4: When system grants WRITE only permissions
         everySuspend { permissionController.getGrantedPermissions() } returns setOf(
             WRITE_PERMISSION
         )
-        // Then writeOnly request results in notDetermined-granted response
-        assertEquals(notDeterminedGrantedResult, sut.checkPermissions(writeOnlyPermission))
+        // Then writeOnly request results in NotDetermined-Granted response
+        assertEquals(
+            setOf(
+                KHPermissionWithStatus(
+                    permission = writeOnlyPermission,
+                    readStatus = KHPermissionStatus.NotDetermined,
+                    writeStatus = KHPermissionStatus.Granted,
+                )
+            ),
+            sut.checkPermissions(writeOnlyPermission)
+        )
 
-        // Case 5: When system grants READ only
+        // Case 5: When system grants READ only permissions
         everySuspend { permissionController.getGrantedPermissions() } returns setOf(
             READ_PERMISSION
         )
-        // Then readOnly request results in granted-notDetermined response
-        assertEquals(grantedNotDeterminedResult, sut.checkPermissions(readOnlyPermission))
+        // Then readOnly request results in Granted-NotDetermined response
+        assertEquals(
+            setOf(
+                KHPermissionWithStatus(
+                    permission = readOnlyPermission,
+                    readStatus = KHPermissionStatus.Granted,
+                    writeStatus = KHPermissionStatus.NotDetermined,
+                )
+            ),
+            sut.checkPermissions(readOnlyPermission)
+        )
 
         verifySuspend(exactly(5)) {
             client.permissionController

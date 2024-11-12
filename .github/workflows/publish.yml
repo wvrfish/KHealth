@@ -34,6 +34,9 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
+      - name: Run Tests
+        run: ./gradlew :library:clean :library:test
+
       - name: Publish Library
         run: |
           echo "Publishing and Releasing library 🚀"

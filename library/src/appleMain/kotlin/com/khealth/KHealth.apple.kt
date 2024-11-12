@@ -55,15 +55,17 @@ actual class KHealth {
         this.store = HKHealthStore()
     }
 
-    internal constructor(store: HKHealthStore) {
+    internal constructor(store: HKHealthStore, isHealthStoreAvailable: Boolean) {
         this.store = store
+        this.testIsHealthStoreAvailable = isHealthStoreAvailable
     }
 
     private var store: HKHealthStore
+    private var testIsHealthStoreAvailable: Boolean? = null
 
     actual val isHealthStoreAvailable: Boolean
         get() {
-            return try {
+            return testIsHealthStoreAvailable ?: try {
                 HKHealthStore.isHealthDataAvailable()
             } catch (e: Exception) {
                 false
@@ -94,7 +96,8 @@ actual class KHealth {
                     permission = permission,
                     // HealthKit does not provide status for READ permissions for privacy concerns
                     readStatus = KHPermissionStatus.NotDetermined,
-                    writeStatus = when (store.authorizationStatusForType(type)) {
+                    writeStatus = if (!permission.write) KHPermissionStatus.NotDetermined
+                    else when (store.authorizationStatusForType(type)) {
                         HKAuthorizationStatusSharingAuthorized -> KHPermissionStatus.Granted
                         HKAuthorizationStatusSharingDenied -> KHPermissionStatus.Denied
                         HKAuthorizationStatusNotDetermined -> KHPermissionStatus.NotDetermined
@@ -183,7 +186,7 @@ actual class KHealth {
 private fun getTypes(from: Array<out KHPermission>, where: (KHPermission) -> Boolean) =
     from.filter(where).mapNotNull { it.dataType.toHKObjectTypeOrNull() }.toSet()
 
-private fun KHDataType.toHKObjectTypeOrNull(): HKObjectType? {
+internal fun KHDataType.toHKObjectTypeOrNull(): HKObjectType? {
     return when (this) {
         KHDataType.ActiveCaloriesBurned ->
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierActiveEnergyBurned)
@@ -306,4 +309,4 @@ private fun KHUnit.Energy.toNativeQuantity(): HKQuantity {
 }
 
 private fun NSError.toException() = Exception(this.localizedDescription)
-private const val HKNotAuthorizedMessage = "Authorization is not determined"
+internal const val HKNotAuthorizedMessage = "Authorization is not determined"
