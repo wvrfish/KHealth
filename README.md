@@ -19,6 +19,8 @@
 
 https://github.com/user-attachments/assets/7c971734-ed7d-42f3-b38a-897997f59142
 
+https://github.com/user-attachments/assets/2dcd7c92-5d15-47c0-9ecb-819aa1cd125b
+
 ## ⚙️ Usage
 
 1. Instantiate
@@ -181,6 +183,10 @@ KHealth supports the following methods:
 | suspend fun `checkPermissions`(vararg permissions: KHPermission)                 | `Set<KHPermissionWithStatus>` | Checks and returns whether the user has already granted permissions to the provided data types. The status can either be Granted, Denied, or NotDetermined. On Apple, due to privacy concerns, HealthKit will never return the status of the READ permission, hence on Apple, this method will always return `NotDetermined` for the READ status. |
 | suspend fun `requestPermissions`(vararg permissions: KHPermission)               | Set`<KHPermissionWithStatus>` | Requests the asked permissions from the health store and returns their status (Granted, Denied, or NotDetermined).                                                                                                                                                                                                                                |
 | suspend fun `writeActiveCaloriesBurned`(vararg records: KHRecord<KHUnit.Energy>) | `KHWriteResponse`             | Allows the user to write one or more records for the active calories/energy burned value(s) into the health store and returns whether the insertion operation was successful, partially successful, or not successful at all.                                                                                                                     |
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
