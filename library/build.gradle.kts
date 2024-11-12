@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.mavenPublish)
+    alias(libs.plugins.mokkery)
 }
 
 kotlin {
@@ -46,6 +47,7 @@ kotlin {
             implementation(libs.kotlin.dateTime)
         }
         commonTest.dependencies {
+            implementation(libs.coroutines.test)
             implementation(libs.kotlin.test)
         }
     }

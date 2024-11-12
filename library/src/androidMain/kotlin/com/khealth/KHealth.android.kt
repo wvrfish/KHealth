@@ -43,6 +43,7 @@ import androidx.health.connect.client.units.Energy
 import androidx.health.connect.client.units.joules
 import androidx.health.connect.client.units.kilojoules
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -52,33 +53,36 @@ import kotlin.reflect.KClass
 actual class KHealth {
     constructor(activity: ComponentActivity) {
         this.activity = activity
-        this.coroutineScope = CoroutineScope(SupervisorJob())
+        this.coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        this.permissionsChannel = Channel()
     }
 
     internal constructor(
-        activity: ComponentActivity,
         client: HealthConnectClient,
         coroutineScope: CoroutineScope,
-        permissionsLauncher: ActivityResultLauncher<Set<String>>
+        isHealthStoreAvailable: Boolean,
+        permissionsChannel: Channel<Set<String>>
     ) {
-        this.activity = activity
         this.client = client
-        this.permissionsLauncher = permissionsLauncher
         this.coroutineScope = coroutineScope
+        this.testIsHealthStoreAvailable = isHealthStoreAvailable
+        this.permissionsChannel = permissionsChannel
     }
 
-    private var activity: ComponentActivity
+    private var activity: ComponentActivity? = null
+
     private lateinit var client: HealthConnectClient
-    private var coroutineScope: CoroutineScope
+    private val coroutineScope: CoroutineScope
+    private var testIsHealthStoreAvailable: Boolean? = null
+    private val permissionsChannel: Channel<Set<String>>
+
     private lateinit var permissionsLauncher: ActivityResultLauncher<Set<String>>
 
-    private val permissionsChannel = Channel<Set<String>>()
-
     actual fun initialise() {
-        if (!::client.isInitialized) client = HealthConnectClient.getOrCreate(activity)
+        if (!::client.isInitialized) client = HealthConnectClient.getOrCreate(activity!!)
         if (!::permissionsLauncher.isInitialized) {
             val permissionContract = PermissionController.createRequestPermissionResultContract()
-            permissionsLauncher = activity.registerForActivityResult(permissionContract) {
+            permissionsLauncher = activity!!.registerForActivityResult(permissionContract) {
                 coroutineScope.launch {
                     permissionsChannel.send(it)
                 }
@@ -87,7 +91,8 @@ actual class KHealth {
     }
 
     actual val isHealthStoreAvailable: Boolean
-        get() = HealthConnectClient.getSdkStatus(activity) == HealthConnectClient.SDK_AVAILABLE
+        get() = testIsHealthStoreAvailable
+            ?: (HealthConnectClient.getSdkStatus(activity!!) == HealthConnectClient.SDK_AVAILABLE)
 
     internal actual fun verifyHealthStoreAvailability() {
         if (!isHealthStoreAvailable) throw HealthStoreNotAvailableException
@@ -105,9 +110,13 @@ actual class KHealth {
         vararg permissions: KHPermission
     ): Set<KHPermissionWithStatus> {
         verifyHealthStoreAvailability()
-        if (!::permissionsLauncher.isInitialized) throw HealthStoreNotInitialisedException
         val permissionSets = permissions.map { entry -> entry.toPermissions() }
-        permissionsLauncher.launch(permissionSets.flatten().map { it.first }.toSet())
+
+        if (::permissionsLauncher.isInitialized) {
+            permissionsLauncher.launch(permissionSets.flatten().map { it.first }.toSet())
+        } else {
+            logError(HealthStoreNotInitialisedException)
+        }
 
         val grantedPermissions = permissionsChannel.receive()
         return permissions.toPermissionsWithStatuses(grantedPermissions).toSet()

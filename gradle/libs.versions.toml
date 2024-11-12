@@ -4,13 +4,14 @@ androidx-activityCompose = "1.9.3"
 compose = "1.7.5"
 compose-material3 = "1.3.1"
 coroutines = "1.9.0"
-healthConnect = "1.1.0-alpha10"
+healthConnectClient = "1.1.0-alpha10"
 java = "21"
 kermit = "2.0.4"
 kotlin = "2.1.0-RC"
 kotlin-dateTime = "0.6.1"
 mavenPublish = "0.30.0"
 minSdk = "28"
+mokkery = "2.6.0-SNAPSHOT"
 targetSdk = "35"
 
 [libraries]
@@ -20,7 +21,8 @@ compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
-healthConnectClient = { module = "androidx.health.connect:connect-client", version.ref = "healthConnect" }
+coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+healthConnectClient = { module = "androidx.health.connect:connect-client", version.ref = "healthConnectClient" }
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 kotlin-dateTime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlin-dateTime" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -32,3 +34,4 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }
+mokkery = { id = "dev.mokkery", version.ref = "mokkery" }
