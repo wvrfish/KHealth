@@ -7,7 +7,7 @@
 <p align="center">
     <img src="http://img.shields.io/badge/-android-6EDB8D.svg?style=flat" />
     <img src="http://img.shields.io/badge/-ios-CDCDCD.svg?style=flat" />
-    <img src="http://img.shields.io/badge/-wearos-8ECDA0.svg?style=flat" />
+    <img src="http://img.shields.io/badge/-watchos-C0C0C0.svg?style=flat" />
 </p>
 
 **KHealth** (_short for Kotlin Health_) is a simple Kotlin Multiplatform wrapper over Android's [Health Connect](https://developer.android.com/health-and-fitness/guides/health-connect) and Apple's [HealthKit](https://developer.apple.com/documentation/healthkit) APIs. It provides a simple and effective way to consume these native APIs in a Kotlin/Compose Multiplatform environment.
