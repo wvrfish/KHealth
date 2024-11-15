@@ -6,6 +6,6 @@ internal fun logDebug(message: String) {
     Logger.d { "[KHealth] -> $message" }
 }
 
-internal fun logError(exception: Exception) {
-    Logger.e(exception) { "[KHealth] -> ${exception.message}" }
+internal fun logError(throwable: Throwable) {
+    Logger.e(throwable) { "[KHealth] -> ${throwable.message}" }
 }

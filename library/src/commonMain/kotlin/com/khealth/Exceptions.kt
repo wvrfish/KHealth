@@ -9,7 +9,7 @@ object HealthStoreNotInitialisedException : Exception(
             "kHealth.initialise() before trying to access any other methods."
 )
 
-object WriteActiveCaloriesBurnedException : Exception(
-    "Writing ${KHDataType.ActiveCaloriesBurned} to HealthKit store failed! " +
-            "Please check if you have the permission to write ${KHDataType.ActiveCaloriesBurned}."
+data class NoWriteAccessException(private val forPermission: String? = null) : Exception(
+    "Writing to $HealthStoreName failed! Please make sure you have write permissions for " +
+            "${forPermission ?: "all permissions you're trying to ask"}."
 )

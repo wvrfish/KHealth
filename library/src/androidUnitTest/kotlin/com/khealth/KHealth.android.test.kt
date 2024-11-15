@@ -2,11 +2,9 @@ package com.khealth
 
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
-import androidx.health.connect.client.response.InsertRecordsResponse
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
-import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.verify.VerifyMode.Companion.exactly
 import dev.mokkery.verifySuspend
@@ -16,13 +14,10 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.Clock
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertIs
-import kotlin.time.Duration.Companion.minutes
 
 class KHealthTests {
     private lateinit var sut: KHealth
@@ -78,7 +73,7 @@ class KHealthTests {
         val wasSuccess = try {
             sut.checkPermissions()
             true
-        } catch (e: Exception) {
+        } catch (t: Throwable) {
             false
         }
         assertEquals(false, wasSuccess)
@@ -296,55 +291,6 @@ class KHealthTests {
         )
         launch { permissionsChannel.send(emptySet()) }
         assertEquals(expectedResult, sut.requestPermissions(permission))
-    }
-
-    @Test
-    fun writeActiveCaloriesBurnedWorksAsExpectedInAllScenarios() = runTest(testDispatcher) {
-        // Case 1: All requests are inserted into store
-        // Arrange
-        val jouleRecord = KHRecord<KHUnit.Energy>(
-            unitValue = KHUnit.Energy.Joule(3.4f),
-            startDateTime = Clock.System.now().minus(10.minutes),
-            endDateTime = Clock.System.now(),
-        )
-        val kilocalorieRecord = KHRecord<KHUnit.Energy>(
-            unitValue = KHUnit.Energy.Kilocalorie(3.4f),
-            startDateTime = Clock.System.now().minus(10.minutes),
-            endDateTime = Clock.System.now(),
-        )
-        everySuspend { client.insertRecords(any()) } returns InsertRecordsResponse(listOf("test"))
-
-        // Act
-        val jouleSuccessResponse = sut.writeActiveCaloriesBurned(jouleRecord)
-        val kilocalorieSuccessResponse = sut.writeActiveCaloriesBurned(kilocalorieRecord)
-
-        // Assert
-        assertEquals(KHWriteResponse.Success, jouleSuccessResponse)
-        assertEquals(KHWriteResponse.Success, kilocalorieSuccessResponse)
-
-        // Case 2: Only some requests are inserted into store
-        // Arrange
-        everySuspend { client.insertRecords(any()) } returns InsertRecordsResponse(listOf("test"))
-
-        // Act
-        val someFailedResponse = sut.writeActiveCaloriesBurned(jouleRecord, kilocalorieRecord)
-
-        // Assert
-        assertEquals(KHWriteResponse.SomeFailed, someFailedResponse)
-
-        // Case 3: No requests are inserted into store
-        // Arrange
-        everySuspend { client.insertRecords(any()) } returns InsertRecordsResponse(emptyList())
-
-        // Act
-        val failedResponse = sut.writeActiveCaloriesBurned(jouleRecord, kilocalorieRecord)
-
-        // Assert
-        assertIs<KHWriteResponse.Failed>(failedResponse)
-
-        // `4` even though we only have 3 cases because we called `sut.writeActiveCaloriesBurned`
-        // twice for Case 1
-        verifySuspend(exactly(4)) { client.insertRecords(any()) }
     }
 }
 

@@ -23,13 +23,7 @@ enum class KHDataType {
      * android.permission.health.READ_BLOOD_PRESSURE
      * android.permission.health.WRITE_BLOOD_PRESSURE
      */
-    BloodPressureSystolic,
-
-    /**
-     * android.permission.health.READ_BLOOD_PRESSURE
-     * android.permission.health.WRITE_BLOOD_PRESSURE
-     */
-    BloodPressureDiastolic,
+    BloodPressure,
 
     /**
      * android.permission.health.READ_BODY_FAT
@@ -80,12 +74,6 @@ enum class KHDataType {
     ElevationGained,
 
     /**
-     * android.permission.health.READ_EXERCISE
-     * android.permission.health.WRITE_EXERCISE
-     */
-    ExerciseSession,
-
-    /**
      * android.permission.health.READ_FLOORS_CLIMBED
      * android.permission.health.WRITE_FLOORS_CLIMBED
      */
@@ -122,16 +110,16 @@ enum class KHDataType {
     IntermenstrualBleeding,
 
     /**
-     * android.permission.health.READ_MENSTRUATION
-     * android.permission.health.WRITE_MENSTRUATION
-     */
-    Menstruation,
-
-    /**
      * android.permission.health.READ_LEAN_BODY_MASS
      * android.permission.health.WRITE_LEAN_BODY_MASS
      */
     LeanBodyMass,
+
+    /**
+     * android.permission.health.READ_MENSTRUATION
+     * android.permission.health.WRITE_MENSTRUATION
+     */
+    MenstruationPeriod,
 
     /**
      * android.permission.health.READ_MENSTRUATION
@@ -218,3 +206,13 @@ enum class KHDataType {
     WheelChairPushes,
 }
 // TODO: Implement NutritionRecord as a common interface
+//  /**
+//   * android.permission.health.READ_NUTRITION
+//   * android.permission.health.WRITE_NUTRITION
+//   */
+
+// TODO: Implement ExerciseRecord as a common interface
+//  /**
+//   * android.permission.health.READ_EXERCISE
+//   * android.permission.health.WRITE_EXERCISE
+//   */

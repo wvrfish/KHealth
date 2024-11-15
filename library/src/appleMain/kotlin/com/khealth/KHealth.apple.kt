@@ -8,13 +8,39 @@ import platform.Foundation.NSError
 import platform.HealthKit.HKAuthorizationStatusNotDetermined
 import platform.HealthKit.HKAuthorizationStatusSharingAuthorized
 import platform.HealthKit.HKAuthorizationStatusSharingDenied
+import platform.HealthKit.HKCategorySample
+import platform.HealthKit.HKCategoryType
 import platform.HealthKit.HKCategoryTypeIdentifierCervicalMucusQuality
 import platform.HealthKit.HKCategoryTypeIdentifierIntermenstrualBleeding
 import platform.HealthKit.HKCategoryTypeIdentifierMenstrualFlow
 import platform.HealthKit.HKCategoryTypeIdentifierOvulationTestResult
 import platform.HealthKit.HKCategoryTypeIdentifierSexualActivity
 import platform.HealthKit.HKCategoryTypeIdentifierSleepAnalysis
+import platform.HealthKit.HKCategoryValueCervicalMucusQualityCreamy
+import platform.HealthKit.HKCategoryValueCervicalMucusQualityDry
+import platform.HealthKit.HKCategoryValueCervicalMucusQualityEggWhite
+import platform.HealthKit.HKCategoryValueCervicalMucusQualitySticky
+import platform.HealthKit.HKCategoryValueCervicalMucusQualityWatery
+import platform.HealthKit.HKCategoryValueMenstrualFlowHeavy
+import platform.HealthKit.HKCategoryValueMenstrualFlowLight
+import platform.HealthKit.HKCategoryValueMenstrualFlowMedium
+import platform.HealthKit.HKCategoryValueMenstrualFlowUnspecified
+import platform.HealthKit.HKCategoryValueNotApplicable
+import platform.HealthKit.HKCategoryValueOvulationTestResultEstrogenSurge
+import platform.HealthKit.HKCategoryValueOvulationTestResultIndeterminate
+import platform.HealthKit.HKCategoryValueOvulationTestResultNegative
+import platform.HealthKit.HKCategoryValueOvulationTestResultPositive
+import platform.HealthKit.HKCategoryValueSleepAnalysisAsleepCore
+import platform.HealthKit.HKCategoryValueSleepAnalysisAsleepDeep
+import platform.HealthKit.HKCategoryValueSleepAnalysisAsleepREM
+import platform.HealthKit.HKCategoryValueSleepAnalysisAsleepUnspecified
+import platform.HealthKit.HKCategoryValueSleepAnalysisAwake
 import platform.HealthKit.HKHealthStore
+import platform.HealthKit.HKMetadataKeyMenstrualCycleStart
+import platform.HealthKit.HKMetadataKeySexualActivityProtectionUsed
+import platform.HealthKit.HKMetricPrefixDeci
+import platform.HealthKit.HKMetricPrefixKilo
+import platform.HealthKit.HKMetricPrefixMilli
 import platform.HealthKit.HKObjectType
 import platform.HealthKit.HKQuantity
 import platform.HealthKit.HKQuantitySample
@@ -43,9 +69,38 @@ import platform.HealthKit.HKQuantityTypeIdentifierRestingHeartRate
 import platform.HealthKit.HKQuantityTypeIdentifierRunningSpeed
 import platform.HealthKit.HKQuantityTypeIdentifierStepCount
 import platform.HealthKit.HKQuantityTypeIdentifierVO2Max
+import platform.HealthKit.HKSample
 import platform.HealthKit.HKUnit
+import platform.HealthKit.HKUnitMolarMassBloodGlucose
+import platform.HealthKit.countUnit
+import platform.HealthKit.dayUnit
+import platform.HealthKit.degreeCelsiusUnit
+import platform.HealthKit.degreeFahrenheitUnit
+import platform.HealthKit.fluidOunceUSUnit
+import platform.HealthKit.gramUnit
+import platform.HealthKit.gramUnitWithMetricPrefix
+import platform.HealthKit.hourUnit
+import platform.HealthKit.inchUnit
 import platform.HealthKit.jouleUnit
+import platform.HealthKit.jouleUnitWithMetricPrefix
 import platform.HealthKit.kilocalorieUnit
+import platform.HealthKit.largeCalorieUnit
+import platform.HealthKit.literUnit
+import platform.HealthKit.literUnitWithMetricPrefix
+import platform.HealthKit.meterUnit
+import platform.HealthKit.meterUnitWithMetricPrefix
+import platform.HealthKit.mileUnit
+import platform.HealthKit.millimeterOfMercuryUnit
+import platform.HealthKit.minuteUnit
+import platform.HealthKit.moleUnitWithMetricPrefix
+import platform.HealthKit.ounceUnit
+import platform.HealthKit.percentUnit
+import platform.HealthKit.poundUnit
+import platform.HealthKit.secondUnit
+import platform.HealthKit.secondUnitWithMetricPrefix
+import platform.HealthKit.smallCalorieUnit
+import platform.HealthKit.unitDividedByUnit
+import platform.HealthKit.wattUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -67,7 +122,7 @@ actual class KHealth {
         get() {
             return testIsHealthStoreAvailable ?: try {
                 HKHealthStore.isHealthDataAvailable()
-            } catch (e: Exception) {
+            } catch (t: Throwable) {
                 false
             }
         }
@@ -85,30 +140,37 @@ actual class KHealth {
         try {
             verifyHealthStoreAvailability()
             val permissionsWithStatuses = permissions.mapNotNull { permission ->
-                val type = permission.dataType.toHKObjectTypeOrNull()
+                val types = permission.dataType.toHKObjectTypesOrNull()?.filterNotNull()
 
-                if (type == null) {
+                if (types == null) {
                     logDebug("Type for $permission not found!")
                     return@mapNotNull null
                 }
+
+                val isWriteGranted = types.map { type ->
+                    when (store.authorizationStatusForType(type)) {
+                        HKAuthorizationStatusSharingAuthorized -> KHPermissionStatus.Granted
+                        HKAuthorizationStatusSharingDenied -> KHPermissionStatus.Denied
+                        HKAuthorizationStatusNotDetermined -> KHPermissionStatus.NotDetermined
+                        else -> throw Exception("Unknown authorization status!")
+                    }
+                }.all { status -> status == KHPermissionStatus.Granted }
 
                 KHPermissionWithStatus(
                     permission = permission,
                     // HealthKit does not provide status for READ permissions for privacy concerns
                     readStatus = KHPermissionStatus.NotDetermined,
-                    writeStatus = if (!permission.write) KHPermissionStatus.NotDetermined
-                    else when (store.authorizationStatusForType(type)) {
-                        HKAuthorizationStatusSharingAuthorized -> KHPermissionStatus.Granted
-                        HKAuthorizationStatusSharingDenied -> KHPermissionStatus.Denied
-                        HKAuthorizationStatusNotDetermined -> KHPermissionStatus.NotDetermined
-                        else -> throw Exception("Unknown authorization status!")
+                    writeStatus = when {
+                        !permission.write -> KHPermissionStatus.NotDetermined
+                        isWriteGranted -> KHPermissionStatus.Granted
+                        else -> KHPermissionStatus.Denied
                     },
                 )
             }
 
             return permissionsWithStatuses.toSet()
-        } catch (e: Exception) {
-            logError(e)
+        } catch (t: Throwable) {
+            logError(t)
             return emptySet()
         }
     }
@@ -133,37 +195,25 @@ actual class KHealth {
                     }
                 }
             )
-        } catch (e: Exception) {
-            logError(e)
+        } catch (t: Throwable) {
+            logError(t)
             continuation.resume(emptySet())
         }
     }
 
-    actual suspend fun writeActiveCaloriesBurned(
-        vararg records: KHRecord<KHUnit.Energy>
+    actual suspend fun writeData(
+        vararg records: KHRecord
     ): KHWriteResponse = suspendCoroutine { continuation ->
         try {
             verifyHealthStoreAvailability()
-
-            val hkObjectType =
-                KHDataType.ActiveCaloriesBurned.toHKObjectTypeOrNull() ?: return@suspendCoroutine
-
-            val samples = records.map { record ->
-                HKQuantitySample.quantitySampleWithType(
-                    quantityType = hkObjectType as HKQuantityType,
-                    quantity = record.unitValue.toNativeQuantity(),
-                    startDate = record.startDateTime.toNSDate(),
-                    endDate = record.endDateTime.toNSDate(),
-                )
-            }
-
+            val samples = records.mapNotNull { record -> record.toHKSamplesOrNull() }.flatten()
             store.saveObjects(samples) { success, error ->
                 when {
                     error != null -> {
                         val exception = error.toException()
                         val parsedException = when {
                             exception.message?.contains(HKNotAuthorizedMessage) == true ->
-                                WriteActiveCaloriesBurnedException
+                                NoWriteAccessException()
 
                             else -> exception
                         }
@@ -171,141 +221,657 @@ actual class KHealth {
                         continuation.resume(KHWriteResponse.Failed(parsedException))
                     }
 
-                    success -> continuation.resume(KHWriteResponse.Success)
+                    success -> continuation.resume(value = KHWriteResponse.Success)
                     else -> continuation.resume(
-                        KHWriteResponse.Failed(WriteActiveCaloriesBurnedException)
+                        value = KHWriteResponse.Failed(throwable = NoWriteAccessException())
                     )
                 }
             }
-        } catch (e: Exception) {
-            logError(e)
+        } catch (t: Throwable) {
+            logError(t)
+            continuation.resume(KHWriteResponse.Failed(t))
         }
     }
 }
 
-private fun getTypes(from: Array<out KHPermission>, where: (KHPermission) -> Boolean) =
-    from.filter(where).mapNotNull { it.dataType.toHKObjectTypeOrNull() }.toSet()
+private fun getTypes(
+    from: Array<out KHPermission>,
+    where: (KHPermission) -> Boolean
+): Set<HKObjectType> = from.filter(where)
+    .mapNotNull { it.dataType.toHKObjectTypesOrNull()?.filterNotNull() }
+    .flatten()
+    .toSet()
 
-internal fun KHDataType.toHKObjectTypeOrNull(): HKObjectType? {
+internal fun KHDataType.toHKObjectTypesOrNull(): List<HKObjectType?>? {
     return when (this) {
-        KHDataType.ActiveCaloriesBurned ->
+        KHDataType.ActiveCaloriesBurned -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierActiveEnergyBurned)
+        )
 
-        KHDataType.BasalMetabolicRate ->
+        KHDataType.BasalMetabolicRate -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBasalEnergyBurned)
+        )
 
-        KHDataType.BloodGlucose ->
+        KHDataType.BloodGlucose -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBloodGlucose)
+        )
 
-        KHDataType.BloodPressureSystolic ->
-            HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBloodPressureSystolic)
+        KHDataType.BloodPressure -> listOf(
+            CommonHKObjectTypes.bloodPressureSystolic,
+            CommonHKObjectTypes.bloodPressureDiastolic,
+        )
 
-        KHDataType.BloodPressureDiastolic ->
-            HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBloodPressureDiastolic)
-
-        KHDataType.BodyFat ->
+        KHDataType.BodyFat -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBodyFatPercentage)
+        )
 
-        KHDataType.BodyTemperature ->
+        KHDataType.BodyTemperature -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBodyTemperature)
+        )
 
-        KHDataType.BodyWaterMass ->
-            HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBodyMass)
+        KHDataType.BodyWaterMass -> null
 
         KHDataType.BoneMass -> null
 
-        KHDataType.CervicalMucus ->
+        KHDataType.CervicalMucus -> listOf(
             HKObjectType.categoryTypeForIdentifier(HKCategoryTypeIdentifierCervicalMucusQuality)
+        )
 
         KHDataType.CyclingPedalingCadence -> null
 
-        KHDataType.Distance ->
+        KHDataType.Distance -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierDistanceWalkingRunning)
+        )
 
         KHDataType.ElevationGained -> null
 
-        // TODO: Verify this
-        KHDataType.ExerciseSession -> HKObjectType.workoutType()
-
-        KHDataType.FloorsClimbed ->
+        KHDataType.FloorsClimbed -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierFlightsClimbed)
+        )
 
-        KHDataType.HeartRate ->
+        KHDataType.HeartRate -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierHeartRate)
+        )
 
-        KHDataType.HeartRateVariability ->
+        KHDataType.HeartRateVariability -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierHeartRateVariabilitySDNN)
+        )
 
-        KHDataType.Height ->
+        KHDataType.Height -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierHeight)
+        )
 
-        KHDataType.Hydration ->
+        KHDataType.Hydration -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierDietaryWater)
+        )
 
-        KHDataType.IntermenstrualBleeding ->
+        KHDataType.IntermenstrualBleeding -> listOf(
             HKObjectType.categoryTypeForIdentifier(HKCategoryTypeIdentifierIntermenstrualBleeding)
+        )
 
-        KHDataType.Menstruation -> null
-
-        KHDataType.LeanBodyMass ->
+        KHDataType.LeanBodyMass -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierLeanBodyMass)
+        )
 
-        KHDataType.MenstruationFlow ->
+        KHDataType.MenstruationPeriod -> null
+
+        KHDataType.MenstruationFlow -> listOf(
             HKObjectType.categoryTypeForIdentifier(HKCategoryTypeIdentifierMenstrualFlow)
+        )
 
-        KHDataType.OvulationTest ->
+        KHDataType.OvulationTest -> listOf(
             HKObjectType.categoryTypeForIdentifier(HKCategoryTypeIdentifierOvulationTestResult)
+        )
 
-        KHDataType.OxygenSaturation ->
+        KHDataType.OxygenSaturation -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierOxygenSaturation)
+        )
 
-        KHDataType.Power ->
+        KHDataType.Power -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierCyclingPower)
+        )
 
-        KHDataType.RespiratoryRate ->
+        KHDataType.RespiratoryRate -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierRespiratoryRate)
+        )
 
-        KHDataType.RestingHeartRate ->
+        KHDataType.RestingHeartRate -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierRestingHeartRate)
+        )
 
-        KHDataType.SexualActivity ->
+        KHDataType.SexualActivity -> listOf(
             HKObjectType.categoryTypeForIdentifier(HKCategoryTypeIdentifierSexualActivity)
+        )
 
-        KHDataType.SleepSession ->
+        KHDataType.SleepSession -> listOf(
             HKObjectType.categoryTypeForIdentifier(HKCategoryTypeIdentifierSleepAnalysis)
+        )
 
-        KHDataType.RunningSpeed ->
+        KHDataType.RunningSpeed -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierRunningSpeed)
+        )
 
-        KHDataType.CyclingSpeed ->
+        KHDataType.CyclingSpeed -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierCyclingSpeed)
+        )
 
-        KHDataType.StepCount ->
+        KHDataType.StepCount -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierStepCount)
+        )
 
-        KHDataType.Vo2Max ->
+        KHDataType.Vo2Max -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierVO2Max)
+        )
 
-        KHDataType.Weight ->
+        KHDataType.Weight -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBodyMass)
+        )
 
-        KHDataType.WheelChairPushes ->
+        KHDataType.WheelChairPushes -> listOf(
             HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierPushCount)
+        )
     }
 }
 
-private fun KHUnit.Energy.toNativeQuantity(): HKQuantity {
+// Returning a List because we want to club multiple records in some cases (like BloodPressure
+// where we want the user to provide both systolic and diastolic values at once and bifurcate them
+// here into 2 separate records).
+@OptIn(UnsafeNumber::class)
+private fun KHRecord.toHKSamplesOrNull(): List<HKSample>? {
+    val objectTypes = dataType.toHKObjectTypesOrNull() ?: return null
     return when (this) {
-        is KHUnit.Energy.Kilocalorie -> HKQuantity.quantityWithUnit(
-            unit = HKUnit.kilocalorieUnit(),
-            doubleValue = value.toDouble()
-        )
+        is KHRecord.ActiveCaloriesBurned -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = energy.toNativeEnergy(),
+                startDate = startTime.toNSDate(),
+                endDate = endTime.toNSDate(),
+            )
+        }
 
-        is KHUnit.Energy.Joule -> HKQuantity.quantityWithUnit(
-            unit = HKUnit.jouleUnit(),
-            doubleValue = value.toDouble()
-        )
+        is KHRecord.BasalMetabolicRate -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = rateApple.toNativeEnergy(),
+                startDate = time.toNSDate(),
+                endDate = time.toNSDate(),
+            )
+        }
+
+        // Ref: https://stackoverflow.com/a/30225338
+        is KHRecord.BloodGlucose -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = when (level) {
+                    is KHUnit.BloodGlucose.MillimolesPerLiter -> HKQuantity.quantityWithUnit(
+                        unit = HKUnit
+                            .moleUnitWithMetricPrefix(
+                                HKMetricPrefixMilli,
+                                HKUnitMolarMassBloodGlucose
+                            )
+                            .unitDividedByUnit(HKUnit.literUnit()),
+                        doubleValue = level.value
+                    )
+
+                    is KHUnit.BloodGlucose.MilligramsPerDeciliter -> HKQuantity.quantityWithUnit(
+                        unit = HKUnit
+                            .gramUnitWithMetricPrefix(HKMetricPrefixMilli)
+                            .unitDividedByUnit(HKUnit.literUnitWithMetricPrefix(HKMetricPrefixDeci)),
+                        doubleValue = level.value
+                    )
+                },
+                startDate = time.toNSDate(),
+                endDate = time.toNSDate(),
+            )
+        }
+
+        // Ref: https://stackoverflow.com/a/25848858
+        is KHRecord.BloodPressure -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = if (objectType == CommonHKObjectTypes.bloodPressureSystolic) {
+                    systolic.toNativePressure()
+                } else {
+                    diastolic.toNativePressure()
+                },
+                startDate = time.toNSDate(),
+                endDate = time.toNSDate(),
+            )
+        }
+
+        is KHRecord.BodyFat -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = HKQuantity.quantityWithUnit(
+                    unit = HKUnit.percentUnit(),
+                    doubleValue = percentage / 100,
+                ),
+                startDate = time.toNSDate(),
+                endDate = time.toNSDate(),
+            )
+        }
+
+        is KHRecord.BodyTemperature -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = when (temperature) {
+                    is KHUnit.Temperature.Celsius -> HKQuantity.quantityWithUnit(
+                        unit = HKUnit.degreeCelsiusUnit(),
+                        doubleValue = temperature.value,
+                    )
+
+                    is KHUnit.Temperature.Fahrenheit -> HKQuantity.quantityWithUnit(
+                        unit = HKUnit.degreeFahrenheitUnit(),
+                        doubleValue = temperature.value,
+                    )
+                },
+                startDate = time.toNSDate(),
+                endDate = time.toNSDate(),
+            )
+        }
+
+        is KHRecord.BodyWaterMass -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = mass.toNativeMass(),
+                startDate = time.toNSDate(),
+                endDate = time.toNSDate(),
+            )
+        }
+
+        is KHRecord.BoneMass -> null
+
+        is KHRecord.CervicalMucus -> objectTypes.map { objectType ->
+            HKCategorySample.categorySampleWithType(
+                type = objectType as HKCategoryType,
+                value = when (appearance) {
+                    KHCervicalMucusAppearance.Creamy -> HKCategoryValueCervicalMucusQualityCreamy
+                    KHCervicalMucusAppearance.Dry -> HKCategoryValueCervicalMucusQualityDry
+                    KHCervicalMucusAppearance.EggWhite -> HKCategoryValueCervicalMucusQualityEggWhite
+                    KHCervicalMucusAppearance.Sticky -> HKCategoryValueCervicalMucusQualitySticky
+                    KHCervicalMucusAppearance.Watery -> HKCategoryValueCervicalMucusQualityWatery
+                },
+                startDate = time.toNSDate(),
+                endDate = time.toNSDate(),
+            )
+        }
+
+        is KHRecord.CyclingPedalingCadence -> null
+
+        is KHRecord.Distance -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = distance.toNativeLength(),
+                startDate = startTime.toNSDate(),
+                endDate = endTime.toNSDate(),
+            )
+        }
+
+        is KHRecord.ElevationGained -> null
+
+        is KHRecord.FloorsClimbed -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = HKQuantity.quantityWithUnit(
+                    unit = HKUnit.countUnit(),
+                    doubleValue = floors,
+                ),
+                startDate = startTime.toNSDate(),
+                endDate = endTime.toNSDate(),
+            )
+        }
+
+        is KHRecord.HeartRate -> samples.map { sample ->
+            objectTypes.map { objectType ->
+                HKQuantitySample.quantitySampleWithType(
+                    quantityType = objectType as HKQuantityType,
+                    quantity = HKQuantity.quantityWithUnit(
+                        unit = HKUnit.countUnit().unitDividedByUnit(HKUnit.minuteUnit()),
+                        doubleValue = sample.beatsPerMinute.toDouble(),
+                    ),
+                    startDate = sample.time.toNSDate(),
+                    endDate = sample.time.toNSDate(),
+                )
+            }
+        }.flatten()
+
+        is KHRecord.HeartRateVariability -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = HKQuantity.quantityWithUnit(
+                    unit = HKUnit.secondUnitWithMetricPrefix(HKMetricPrefixMilli),
+                    doubleValue = heartRateVariabilityMillis,
+                ),
+                startDate = time.toNSDate(),
+                endDate = time.toNSDate(),
+            )
+        }
+
+        is KHRecord.Height -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = height.toNativeLength(),
+                startDate = time.toNSDate(),
+                endDate = time.toNSDate(),
+            )
+        }
+
+        is KHRecord.Hydration -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = when (volume) {
+                    is KHUnit.Volume.FluidOunceUS -> HKQuantity.quantityWithUnit(
+                        unit = HKUnit.fluidOunceUSUnit(),
+                        doubleValue = volume.value,
+                    )
+
+                    is KHUnit.Volume.Liter -> HKQuantity.quantityWithUnit(
+                        unit = HKUnit.literUnit(),
+                        doubleValue = volume.value,
+                    )
+                },
+                startDate = startTime.toNSDate(),
+                endDate = endTime.toNSDate(),
+            )
+        }
+
+        is KHRecord.IntermenstrualBleeding -> objectTypes.map { objectType ->
+            HKCategorySample.categorySampleWithType(
+                type = objectType as HKCategoryType,
+                value = HKCategoryValueNotApplicable,
+                startDate = time.toNSDate(),
+                endDate = time.toNSDate(),
+            )
+        }
+
+        is KHRecord.LeanBodyMass -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = mass.toNativeMass(),
+                startDate = time.toNSDate(),
+                endDate = time.toNSDate(),
+            )
+        }
+
+        is KHRecord.MenstruationPeriod -> null
+
+        is KHRecord.MenstruationFlow -> objectTypes.map { objectType ->
+            HKCategorySample.categorySampleWithType(
+                type = objectType as HKCategoryType,
+                value = when (flowType) {
+                    KHMenstruationFlowType.Unknown -> HKCategoryValueMenstrualFlowUnspecified
+                    KHMenstruationFlowType.Light -> HKCategoryValueMenstrualFlowLight
+                    KHMenstruationFlowType.Medium -> HKCategoryValueMenstrualFlowMedium
+                    KHMenstruationFlowType.Heavy -> HKCategoryValueMenstrualFlowHeavy
+                },
+                startDate = time.toNSDate(),
+                endDate = time.toNSDate(),
+                metadata = mapOf(HKMetadataKeyMenstrualCycleStart to isStartOfCycle)
+            )
+        }
+
+        is KHRecord.OvulationTest -> objectTypes.map { objectType ->
+            HKCategorySample.categorySampleWithType(
+                type = objectType as HKCategoryType,
+                value = when (result) {
+                    KHOvulationTestResult.High -> HKCategoryValueOvulationTestResultEstrogenSurge
+                    KHOvulationTestResult.Negative -> HKCategoryValueOvulationTestResultNegative
+                    KHOvulationTestResult.Positive -> HKCategoryValueOvulationTestResultPositive
+                    KHOvulationTestResult.Inconclusive -> HKCategoryValueOvulationTestResultIndeterminate
+                },
+                startDate = time.toNSDate(),
+                endDate = time.toNSDate(),
+            )
+        }
+
+        is KHRecord.OxygenSaturation -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = HKQuantity.quantityWithUnit(
+                    unit = HKUnit.percentUnit(),
+                    doubleValue = percentage / 100,
+                ),
+                startDate = time.toNSDate(),
+                endDate = time.toNSDate(),
+            )
+        }
+
+        is KHRecord.Power -> samples.map { sample ->
+            objectTypes.map { objectType ->
+                HKQuantitySample.quantitySampleWithType(
+                    quantityType = objectType as HKQuantityType,
+                    quantity = when (sample.power) {
+                        is KHUnit.Power.KilocaloriePerDay -> HKQuantity.quantityWithUnit(
+                            unit = HKUnit.kilocalorieUnit().unitDividedByUnit(HKUnit.dayUnit()),
+                            doubleValue = sample.power.value,
+                        )
+
+                        is KHUnit.Power.Watt -> HKQuantity.quantityWithUnit(
+                            unit = HKUnit.wattUnit(),
+                            doubleValue = sample.power.value,
+                        )
+                    },
+                    startDate = sample.time.toNSDate(),
+                    endDate = sample.time.toNSDate(),
+                )
+            }
+        }.flatten()
+
+        is KHRecord.RespiratoryRate -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = HKQuantity.quantityWithUnit(
+                    unit = HKUnit.countUnit().unitDividedByUnit(HKUnit.minuteUnit()),
+                    doubleValue = rate,
+                ),
+                startDate = time.toNSDate(),
+                endDate = time.toNSDate(),
+            )
+        }
+
+        is KHRecord.RestingHeartRate -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = HKQuantity.quantityWithUnit(
+                    unit = HKUnit.countUnit().unitDividedByUnit(HKUnit.minuteUnit()),
+                    doubleValue = beatsPerMinute.toDouble(),
+                ),
+                startDate = time.toNSDate(),
+                endDate = time.toNSDate(),
+            )
+        }
+
+        is KHRecord.SexualActivity -> objectTypes.map { objectType ->
+            HKCategorySample.categorySampleWithType(
+                type = objectType as HKCategoryType,
+                value = HKCategoryValueNotApplicable,
+                startDate = time.toNSDate(),
+                endDate = time.toNSDate(),
+                metadata = mapOf(HKMetadataKeySexualActivityProtectionUsed to didUseProtection)
+            )
+        }
+
+        is KHRecord.SleepSession -> samples.map { sample ->
+            objectTypes.map { objectType ->
+                HKCategorySample.categorySampleWithType(
+                    type = objectType as HKCategoryType,
+                    value = when (sample.stage) {
+                        KHSleepStage.Awake,
+                        KHSleepStage.AwakeInBed,
+                        KHSleepStage.AwakeOutOfBed -> HKCategoryValueSleepAnalysisAwake
+
+                        KHSleepStage.Deep -> HKCategoryValueSleepAnalysisAsleepDeep
+                        KHSleepStage.Light -> HKCategoryValueSleepAnalysisAsleepCore
+                        KHSleepStage.REM -> HKCategoryValueSleepAnalysisAsleepREM
+
+                        KHSleepStage.Sleeping,
+                        KHSleepStage.Unknown -> HKCategoryValueSleepAnalysisAsleepUnspecified
+                    },
+                    startDate = sample.startTime.toNSDate(),
+                    endDate = sample.endTime.toNSDate(),
+                )
+            }
+        }.flatten()
+
+        is KHRecord.RunningSpeed -> samples.map { sample ->
+            objectTypes.map { objectType ->
+                HKQuantitySample.quantitySampleWithType(
+                    quantityType = objectType as HKQuantityType,
+                    quantity = sample.speed.toNativeVelocity(),
+                    startDate = sample.time.toNSDate(),
+                    endDate = sample.time.toNSDate(),
+                )
+            }
+        }.flatten()
+
+        is KHRecord.CyclingSpeed -> samples.map { sample ->
+            objectTypes.map { objectType ->
+                HKQuantitySample.quantitySampleWithType(
+                    quantityType = objectType as HKQuantityType,
+                    quantity = sample.speed.toNativeVelocity(),
+                    startDate = sample.time.toNSDate(),
+                    endDate = sample.time.toNSDate(),
+                )
+            }
+        }.flatten()
+
+        is KHRecord.StepCount -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = HKQuantity.quantityWithUnit(
+                    unit = HKUnit.countUnit(),
+                    doubleValue = count.toDouble()
+                ),
+                startDate = startTime.toNSDate(),
+                endDate = endTime.toNSDate(),
+            )
+        }
+
+        is KHRecord.Vo2Max -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = HKQuantity.quantityWithUnit(
+                    unit = HKUnit.unitFromString("ml/kg*min"),
+                    doubleValue = vo2MillilitersPerMinuteKilogram
+                ),
+                startDate = time.toNSDate(),
+                endDate = time.toNSDate(),
+            )
+        }
+
+        is KHRecord.Weight -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = weight.toNativeMass(),
+                startDate = time.toNSDate(),
+                endDate = time.toNSDate(),
+            )
+        }
+
+        is KHRecord.WheelChairPushes -> objectTypes.map { objectType ->
+            HKQuantitySample.quantitySampleWithType(
+                quantityType = objectType as HKQuantityType,
+                quantity = HKQuantity.quantityWithUnit(
+                    unit = HKUnit.countUnit(),
+                    doubleValue = count.toDouble(),
+                ),
+                startDate = startTime.toNSDate(),
+                endDate = endTime.toNSDate(),
+            )
+        }
     }
+}
+
+@OptIn(UnsafeNumber::class)
+private fun KHUnit.Energy.toNativeEnergy(): HKQuantity = when (this) {
+    is KHUnit.Energy.Calorie -> HKQuantity.quantityWithUnit(
+        unit = HKUnit.smallCalorieUnit(),
+        doubleValue = value
+    )
+
+    is KHUnit.Energy.Joule -> HKQuantity.quantityWithUnit(
+        unit = HKUnit.jouleUnit(),
+        doubleValue = value
+    )
+
+    is KHUnit.Energy.KiloCalorie -> HKQuantity.quantityWithUnit(
+        unit = HKUnit.largeCalorieUnit(),
+        doubleValue = value
+    )
+
+    is KHUnit.Energy.KiloJoule -> HKQuantity.quantityWithUnit(
+        unit = HKUnit.jouleUnitWithMetricPrefix(HKMetricPrefixKilo),
+        doubleValue = value
+    )
+}
+
+private fun KHUnit.Length.toNativeLength(): HKQuantity = when (this) {
+    is KHUnit.Length.Inch -> HKQuantity.quantityWithUnit(
+        unit = HKUnit.inchUnit(),
+        doubleValue = value,
+    )
+
+    is KHUnit.Length.Meter -> HKQuantity.quantityWithUnit(
+        unit = HKUnit.meterUnit(),
+        doubleValue = value,
+    )
+
+    is KHUnit.Length.Mile -> HKQuantity.quantityWithUnit(
+        unit = HKUnit.mileUnit(),
+        doubleValue = value,
+    )
+}
+
+private fun KHUnit.Mass.toNativeMass(): HKQuantity = when (this) {
+    is KHUnit.Mass.Gram -> HKQuantity.quantityWithUnit(
+        unit = HKUnit.gramUnit(),
+        doubleValue = value,
+    )
+
+    is KHUnit.Mass.Ounce -> HKQuantity.quantityWithUnit(
+        unit = HKUnit.ounceUnit(),
+        doubleValue = value,
+    )
+
+    is KHUnit.Mass.Pound -> HKQuantity.quantityWithUnit(
+        unit = HKUnit.poundUnit(),
+        doubleValue = value,
+    )
+}
+
+@OptIn(UnsafeNumber::class)
+private fun KHUnit.Velocity.toNativeVelocity(): HKQuantity = when (this) {
+    is KHUnit.Velocity.KilometersPerHour -> HKQuantity.quantityWithUnit(
+        unit = HKUnit
+            .meterUnitWithMetricPrefix(HKMetricPrefixKilo)
+            .unitDividedByUnit(HKUnit.hourUnit()),
+        doubleValue = this.value,
+    )
+
+    is KHUnit.Velocity.MetersPerSecond -> HKQuantity.quantityWithUnit(
+        unit = HKUnit.meterUnit().unitDividedByUnit(HKUnit.secondUnit()),
+        doubleValue = this.value,
+    )
+
+    is KHUnit.Velocity.MilesPerHour -> HKQuantity.quantityWithUnit(
+        unit = HKUnit.mileUnit().unitDividedByUnit(HKUnit.hourUnit()),
+        doubleValue = this.value,
+    )
+}
+
+private fun KHUnit.Pressure.toNativePressure(): HKQuantity = when (this) {
+    is KHUnit.Pressure.MillimeterOfMercury -> HKQuantity.quantityWithUnit(
+        unit = HKUnit.millimeterOfMercuryUnit(),
+        doubleValue = value
+    )
+}
+
+private object CommonHKObjectTypes {
+    val bloodPressureSystolic =
+        HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBloodPressureSystolic)
+
+    val bloodPressureDiastolic =
+        HKObjectType.quantityTypeForIdentifier(HKQuantityTypeIdentifierBloodPressureDiastolic)
 }
 
 private fun NSError.toException() = Exception(this.localizedDescription)

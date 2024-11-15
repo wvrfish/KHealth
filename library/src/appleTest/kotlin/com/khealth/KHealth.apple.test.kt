@@ -2,7 +2,6 @@ package com.khealth
 
 import kotlinx.cinterop.UnsafeNumber
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.Clock
 import platform.Foundation.NSError
 import platform.HealthKit.HKAuthorizationStatus
 import platform.HealthKit.HKAuthorizationStatusNotDetermined
@@ -14,9 +13,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertIs
 import kotlin.test.assertTrue
-import kotlin.time.Duration.Companion.minutes
 
 class KHealthTests {
     private lateinit var store: HKHealthStore
@@ -232,7 +229,7 @@ class KHealthTests {
         sut = KHealth(
             store = object : HKHealthStore() {
                 override fun authorizationStatusForType(type: HKObjectType): HKAuthorizationStatus {
-                    return if (type == caloriesPermission.dataType.toHKObjectTypeOrNull()) {
+                    return if (type == caloriesPermission.dataType.toHKObjectTypesOrNull()) {
                         HKAuthorizationStatusSharingAuthorized
                     } else {
                         HKAuthorizationStatusSharingDenied
@@ -262,43 +259,5 @@ class KHealthTests {
             ),
             sut.requestPermissions(caloriesPermission, heartRatePermission)
         )
-    }
-
-    @Test
-    fun writeActiveCaloriesBurnedWorksAsExpectedInAllScenarios() = runTest {
-        val record1 = KHRecord<KHUnit.Energy>(
-            unitValue = KHUnit.Energy.Joule(3.4f),
-            startDateTime = Clock.System.now().minus(10.minutes),
-            endDateTime = Clock.System.now(),
-        )
-        val record2 = KHRecord<KHUnit.Energy>(
-            unitValue = KHUnit.Energy.Kilocalorie(6.9f),
-            startDateTime = Clock.System.now().minus(1.minutes),
-            endDateTime = Clock.System.now(),
-        )
-
-        // Case 1: All objects are saved successfully
-        sut = KHealth(
-            store = object : HKHealthStore() {
-                override fun saveObjects(
-                    objects: List<*>,
-                    withCompletion: (Boolean, NSError?) -> Unit
-                ) = withCompletion(true, null)
-            },
-            isHealthStoreAvailable = true
-        )
-        assertEquals(KHWriteResponse.Success, sut.writeActiveCaloriesBurned(record1, record2))
-
-        // Case 2: When saving objects fails
-        sut = KHealth(
-            store = object : HKHealthStore() {
-                override fun saveObjects(
-                    objects: List<*>,
-                    withCompletion: (Boolean, NSError?) -> Unit
-                ) = withCompletion(false, null)
-            },
-            isHealthStoreAvailable = true
-        )
-        assertIs<KHWriteResponse.Failed>(sut.writeActiveCaloriesBurned(record1, record2))
     }
 }

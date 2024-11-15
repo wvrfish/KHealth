@@ -11,5 +11,5 @@ expect class KHealth {
 
     suspend fun requestPermissions(vararg permissions: KHPermission): Set<KHPermissionWithStatus>
 
-    suspend fun writeActiveCaloriesBurned(vararg records: KHRecord<KHUnit.Energy>): KHWriteResponse
+    suspend fun writeData(vararg records: KHRecord): KHWriteResponse
 }
