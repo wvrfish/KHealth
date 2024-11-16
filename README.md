@@ -94,27 +94,31 @@ https://github.com/user-attachments/assets/2dcd7c92-5d15-47c0-9ecb-819aa1cd125b
     val wasWritePermissionGranted = caloriesWriteStatus == KHPermissionStatus.Granted
     ```
    
-6. Write record(s)
+6. Write records
 
    ```kotlin
    if (wasWritePermissionGranted) {
-        val insertResponse: KHWriteResponse = kHealth.writeActiveCaloriesBurned(
-          KHRecord(
-            unitValue = KHUnit.Energy.Kilocalorie(3.4f),
-            startDateTime = Clock.System.now().minus(10.minutes),
-            endDateTime = Clock.System.now(),
-          ),
-          KHRecord(
-            unitValue = KHUnit.Energy.Joule(1.5f),
-            startDateTime = Clock.System.now().minus(30.minutes),
-            endDateTime = Clock.System.now().minus(10.minutes),
-          ),
-          // Add as many records as you want
+        val insertResponse: KHWriteResponse = kHealth.writeRecords(
+            KHRecord.ActiveCaloriesBurned(
+                unit = KHUnit.Energy.KiloCalorie,
+                value = 3.4,
+                startTime = Clock.System.now().minus(10.minutes),
+                endTime = Clock.System.now(),
+            ),
+            KHRecord.HeartRate(
+                samples = listOf(
+                    KHHeartRateSample(
+                        beatsPerMinute = 126,
+                        time = Clock.System.now().minus(10.minutes)
+                    )
+                ),
+            ),
+            // Add as many records as you want
         )
 
         when (insertResponse) {
            is KHWriteResponse.Failed -> {
-             println("Records insertion failed ❌ Reason: ${insertResponse.exception}")
+             println("Records insertion failed ❌ Reason: ${insertResponse.throwable}")
            }
 
            KHWriteResponse.SomeFailed -> println("Some records were not inserted ⚠️")
@@ -122,6 +126,16 @@ https://github.com/user-attachments/assets/2dcd7c92-5d15-47c0-9ecb-819aa1cd125b
            KHWriteResponse.Success -> println("Records inserted ✅")
         }
    }
+   ```
+7. Read records
+   ```kotlin
+    val heartRateRecords = kHealth.readRecords(
+        KHReadRequest.HeartRate(
+            startTime = Clock.System.now().minus(1.days),
+            endTime = Clock.System.now()
+        )
+    )
+    println("Heart Rate records: $heartRateRecords")
    ```
 
 ## 🚀 Getting Started
@@ -168,21 +182,6 @@ dependencyResolutionManagement {
     }
 }
 ```
-
-## 💻 API
-
-> [!WARNING]  
-> The library is currently a work-in-progress. Hence, the APIs mentioned below are not final and might change at any time. Although, I'll try my best to keep them stable.
-
-KHealth supports the following methods:
-
-| Method / Property Name                                                           | Return Type                   | Description                                                                                                                                                                                                                                                                                                                                       |
-|----------------------------------------------------------------------------------|-------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| fun `initialise`()                                                               | `Unit`                        | Allows the Android app to listen to the user's selection on the health permissions system dialog. This method is no-op on Apple devices.                                                                                                                                                                                                          |
-| val `isHealthStoreAvailable`                                                     | `Boolean`                     | Returns whether the current device has HealthConnect (on Android) / HealthKit (on Apple) installed and ready to go.                                                                                                                                                                                                                               |
-| suspend fun `checkPermissions`(vararg permissions: KHPermission)                 | `Set<KHPermissionWithStatus>` | Checks and returns whether the user has already granted permissions to the provided data types. The status can either be Granted, Denied, or NotDetermined. On Apple, due to privacy concerns, HealthKit will never return the status of the READ permission, hence on Apple, this method will always return `NotDetermined` for the READ status. |
-| suspend fun `requestPermissions`(vararg permissions: KHPermission)               | Set`<KHPermissionWithStatus>` | Requests the asked permissions from the health store and returns their status (Granted, Denied, or NotDetermined).                                                                                                                                                                                                                                |
-| suspend fun `writeActiveCaloriesBurned`(vararg records: KHRecord<KHUnit.Energy>) | `KHWriteResponse`             | Allows the user to write one or more records for the active calories/energy burned value(s) into the health store and returns whether the insertion operation was successful, partially successful, or not successful at all.                                                                                                                     |
 
 ## 🤝 Contributing
 
