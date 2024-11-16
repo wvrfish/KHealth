@@ -85,7 +85,7 @@ actual class KHealth {
         return permissions.toPermissionsWithStatuses(grantedPermissions).toSet()
     }
 
-    actual suspend fun writeData(vararg records: KHRecord): KHWriteResponse {
+    actual suspend fun writeRecords(vararg records: KHRecord): KHWriteResponse {
         try {
             verifyHealthStoreAvailability()
             val hcRecords = records.mapNotNull { record -> record.toHCRecord() }

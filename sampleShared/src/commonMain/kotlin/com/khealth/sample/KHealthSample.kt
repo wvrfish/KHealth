@@ -50,7 +50,7 @@ fun sampleRequestAllPerms(kHealth: KHealth) {
 
 fun sampleWriteData(kHealth: KHealth) {
     coroutineScope.launch {
-        val insertResponse = kHealth.writeData(
+        val insertResponse = kHealth.writeRecords(
             KHRecord.ActiveCaloriesBurned(
                 unit = KHUnit.Energy.KiloCalorie,
                 value = 3.0,

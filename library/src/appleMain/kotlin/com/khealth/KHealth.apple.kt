@@ -162,7 +162,7 @@ actual class KHealth {
         }
     }
 
-    actual suspend fun writeData(
+    actual suspend fun writeRecords(
         vararg records: KHRecord
     ): KHWriteResponse = suspendCoroutine { continuation ->
         try {

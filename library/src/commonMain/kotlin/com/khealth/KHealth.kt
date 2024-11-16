@@ -11,7 +11,7 @@ expect class KHealth {
 
     suspend fun requestPermissions(vararg permissions: KHPermission): Set<KHPermissionWithStatus>
 
-    suspend fun writeData(vararg records: KHRecord): KHWriteResponse
+    suspend fun writeRecords(vararg records: KHRecord): KHWriteResponse
 
     suspend fun readRecords(request: KHReadRequest): List<KHRecord>
 }
