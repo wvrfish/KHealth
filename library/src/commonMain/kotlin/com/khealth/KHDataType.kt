@@ -173,12 +173,10 @@ enum class KHDataType {
      * android.permission.health.READ_SPEED
      * android.permission.health.WRITE_SPEED
      */
+    Speed,
+
     RunningSpeed,
 
-    /**
-     * android.permission.health.READ_SPEED
-     * android.permission.health.WRITE_SPEED
-     */
     CyclingSpeed,
 
     /**

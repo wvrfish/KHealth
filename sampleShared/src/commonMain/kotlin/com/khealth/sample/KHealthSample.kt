@@ -3,6 +3,7 @@ package com.khealth.sample
 import com.khealth.KHCervicalMucusAppearance
 import com.khealth.KHCyclingPedalingCadenceSample
 import com.khealth.KHDataType
+import com.khealth.KHEither
 import com.khealth.KHHeartRateSample
 import com.khealth.KHMenstruationFlowType
 import com.khealth.KHOvulationTestResult
@@ -10,6 +11,7 @@ import com.khealth.KHPermission
 import com.khealth.KHPermissionStatus
 import com.khealth.KHPermissionWithStatus
 import com.khealth.KHPowerSample
+import com.khealth.KHReadRequest
 import com.khealth.KHRecord
 import com.khealth.KHSleepStage
 import com.khealth.KHSleepStageSample
@@ -19,6 +21,7 @@ import com.khealth.KHealth
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 
 private val permissions = KHDataType.entries
@@ -49,22 +52,25 @@ fun sampleWriteData(kHealth: KHealth) {
     coroutineScope.launch {
         val insertResponse = kHealth.writeData(
             KHRecord.ActiveCaloriesBurned(
-                energy = KHUnit.Energy.KiloCalorie(3.0),
+                unit = KHUnit.Energy.KiloCalorie,
+                value = 3.0,
                 startTime = Clock.System.now().minus(10.minutes),
                 endTime = Clock.System.now(),
             ),
             KHRecord.BasalMetabolicRate(
-                rateAndroid = KHUnit.Power.Watt(4.0),
-                rateApple = KHUnit.Energy.KiloCalorie(4.0),
+                unit = KHEither(left = KHUnit.Power.Watt, right = KHUnit.Energy.KiloCalorie),
+                value = 4.0,
                 time = Clock.System.now(),
             ),
             KHRecord.BloodGlucose(
-                level = KHUnit.BloodGlucose.MillimolesPerLiter(2.5),
+                unit = KHUnit.BloodGlucose.MillimolesPerLiter,
+                value = 2.5,
                 time = Clock.System.now(),
             ),
             KHRecord.BloodPressure(
-                systolic = KHUnit.Pressure.MillimeterOfMercury(121.0),
-                diastolic = KHUnit.Pressure.MillimeterOfMercury(79.0),
+                unit = KHUnit.Pressure.MillimeterOfMercury,
+                systolicValue = 121.0,
+                diastolicValue = 79.0,
                 time = Clock.System.now(),
             ),
             KHRecord.BodyFat(
@@ -72,15 +78,18 @@ fun sampleWriteData(kHealth: KHealth) {
                 time = Clock.System.now(),
             ),
             KHRecord.BodyTemperature(
-                temperature = KHUnit.Temperature.Fahrenheit(98.3),
+                unit = KHUnit.Temperature.Fahrenheit,
+                value = 98.3,
                 time = Clock.System.now(),
             ),
             KHRecord.BodyWaterMass(
-                mass = KHUnit.Mass.Gram(192.5),
+                unit = KHUnit.Mass.Gram,
+                value = 192.5,
                 time = Clock.System.now(),
             ),
             KHRecord.BoneMass(
-                mass = KHUnit.Mass.Gram(93.77),
+                unit = KHUnit.Mass.Gram,
+                value = 93.77,
                 time = Clock.System.now(),
             ),
             KHRecord.CervicalMucus(
@@ -102,12 +111,14 @@ fun sampleWriteData(kHealth: KHealth) {
                 endTime = Clock.System.now(),
             ),
             KHRecord.Distance(
-                distance = KHUnit.Length.Meter(4.9),
+                unit = KHUnit.Length.Meter,
+                value = 4.9,
                 startTime = Clock.System.now().minus(2.minutes),
                 endTime = Clock.System.now(),
             ),
             KHRecord.ElevationGained(
-                elevation = KHUnit.Length.Meter(2.2),
+                unit = KHUnit.Length.Meter,
+                value = 2.2,
                 startTime = Clock.System.now().minus(2.minutes),
                 endTime = Clock.System.now(),
             ),
@@ -126,11 +137,13 @@ fun sampleWriteData(kHealth: KHealth) {
                 time = Clock.System.now(),
             ),
             KHRecord.Height(
-                height = KHUnit.Length.Meter(1.78),
+                unit = KHUnit.Length.Meter,
+                value = 1.78,
                 time = Clock.System.now(),
             ),
             KHRecord.Hydration(
-                volume = KHUnit.Volume.Liter(3.3),
+                unit = KHUnit.Volume.Liter,
+                value = 3.3,
                 startTime = Clock.System.now().minus(2.minutes),
                 endTime = Clock.System.now(),
             ),
@@ -138,7 +151,8 @@ fun sampleWriteData(kHealth: KHealth) {
                 time = Clock.System.now(),
             ),
             KHRecord.LeanBodyMass(
-                mass = KHUnit.Mass.Gram(1120.0),
+                unit = KHUnit.Mass.Gram,
+                value = 1120.0,
                 time = Clock.System.now(),
             ),
             KHRecord.MenstruationPeriod(
@@ -146,9 +160,8 @@ fun sampleWriteData(kHealth: KHealth) {
                 endTime = Clock.System.now(),
             ),
             KHRecord.MenstruationFlow(
-                flowType = KHMenstruationFlowType.Medium,
+                type = KHMenstruationFlowType.Medium,
                 time = Clock.System.now(),
-                isStartOfCycle = false,
             ),
             KHRecord.OvulationTest(
                 result = KHOvulationTestResult.Positive,
@@ -161,7 +174,8 @@ fun sampleWriteData(kHealth: KHealth) {
             KHRecord.Power(
                 samples = listOf(
                     KHPowerSample(
-                        power = KHUnit.Power.Watt(50.0),
+                        unit = KHUnit.Power.Watt,
+                        value = 50.0,
                         time = Clock.System.now(),
                     )
                 )
@@ -225,7 +239,8 @@ fun sampleWriteData(kHealth: KHealth) {
             KHRecord.RunningSpeed(
                 samples = listOf(
                     KHSpeedSample(
-                        speed = KHUnit.Velocity.KilometersPerHour(30.0),
+                        unit = KHUnit.Velocity.KilometersPerHour,
+                        value = 10.0,
                         time = Clock.System.now(),
                     )
                 ),
@@ -233,7 +248,8 @@ fun sampleWriteData(kHealth: KHealth) {
             KHRecord.CyclingSpeed(
                 samples = listOf(
                     KHSpeedSample(
-                        speed = KHUnit.Velocity.KilometersPerHour(10.0),
+                        unit = KHUnit.Velocity.KilometersPerHour,
+                        value = 30.0,
                         time = Clock.System.now(),
                     )
                 ),
@@ -248,7 +264,8 @@ fun sampleWriteData(kHealth: KHealth) {
                 time = Clock.System.now(),
             ),
             KHRecord.Weight(
-                weight = KHUnit.Mass.Pound(180.33),
+                unit = KHUnit.Mass.Pound,
+                value = 180.33,
                 time = Clock.System.now(),
             ),
             KHRecord.WheelChairPushes(
@@ -258,6 +275,194 @@ fun sampleWriteData(kHealth: KHealth) {
             ),
         )
         println("Data insert response: $insertResponse")
+    }
+}
+
+fun sampleReadData(kHealth: KHealth) {
+    coroutineScope.launch {
+        val startTime = Clock.System.now().minus(1.days)
+        val endTime = Clock.System.now()
+        val allRecords = with(kHealth) {
+            readRecords(
+                KHReadRequest.ActiveCaloriesBurned(
+                    unit = KHUnit.Energy.Calorie,
+                    startTime = startTime,
+                    endTime = endTime
+                )
+            ) +
+                    readRecords(
+                        KHReadRequest.BasalMetabolicRate(
+                            unit = KHEither(
+                                left = KHUnit.Power.Watt,
+                                right = KHUnit.Energy.Calorie
+                            ),
+                            startTime = startTime,
+                            endTime = endTime
+                        )
+                    ) +
+                    readRecords(
+                        KHReadRequest.BloodGlucose(
+                            unit = KHUnit.BloodGlucose.MilligramsPerDeciliter,
+                            startTime = startTime,
+                            endTime = endTime
+                        )
+                    ) +
+                    readRecords(
+                        KHReadRequest.BloodPressure(
+                            unit = KHUnit.Pressure.MillimeterOfMercury,
+                            startTime = startTime,
+                            endTime = endTime
+                        )
+                    ) +
+                    readRecords(
+                        KHReadRequest.BodyFat(startTime = startTime, endTime = endTime)
+                    ) +
+                    readRecords(
+                        KHReadRequest.BodyTemperature(
+                            unit = KHUnit.Temperature.Fahrenheit,
+                            startTime = startTime,
+                            endTime = endTime
+                        )
+                    ) +
+                    readRecords(
+                        KHReadRequest.BodyWaterMass(
+                            unit = KHUnit.Mass.Gram,
+                            startTime = startTime,
+                            endTime = endTime
+                        )
+                    ) +
+                    readRecords(
+                        KHReadRequest.BoneMass(
+                            unit = KHUnit.Mass.Gram,
+                            startTime = startTime,
+                            endTime = endTime
+                        )
+                    ) +
+                    readRecords(
+                        KHReadRequest.CervicalMucus(
+                            startTime = startTime,
+                            endTime = endTime
+                        )
+                    ) +
+                    readRecords(
+                        KHReadRequest.CyclingPedalingCadence(
+                            startTime = startTime,
+                            endTime = endTime
+                        )
+                    ) +
+                    readRecords(
+                        KHReadRequest.Distance(
+                            unit = KHUnit.Length.Meter,
+                            startTime = startTime,
+                            endTime = endTime
+                        )
+                    ) +
+                    readRecords(
+                        KHReadRequest.ElevationGained(
+                            unit = KHUnit.Length.Meter,
+                            startTime = startTime,
+                            endTime = endTime
+                        )
+                    ) +
+                    readRecords(
+                        KHReadRequest.FloorsClimbed(startTime = startTime, endTime = endTime)
+                    ) +
+                    readRecords(
+                        KHReadRequest.HeartRate(startTime = startTime, endTime = endTime)
+                    ) +
+                    readRecords(
+                        KHReadRequest.HeartRateVariability(startTime = startTime, endTime = endTime)
+                    ) +
+                    readRecords(
+                        KHReadRequest.Height(
+                            unit = KHUnit.Length.Meter,
+                            startTime = startTime,
+                            endTime = endTime
+                        )
+                    ) +
+                    readRecords(
+                        KHReadRequest.Hydration(
+                            unit = KHUnit.Volume.Liter,
+                            startTime = startTime,
+                            endTime = endTime
+                        )
+                    ) +
+                    readRecords(
+                        KHReadRequest.IntermenstrualBleeding(
+                            startTime = startTime,
+                            endTime = endTime
+                        )
+                    ) +
+                    readRecords(
+                        KHReadRequest.LeanBodyMass(
+                            unit = KHUnit.Mass.Gram,
+                            startTime = startTime,
+                            endTime = endTime
+                        )
+                    ) +
+                    readRecords(
+                        KHReadRequest.MenstruationPeriod(startTime = startTime, endTime = endTime)
+                    ) +
+                    readRecords(
+                        KHReadRequest.MenstruationFlow(startTime = startTime, endTime = endTime)
+                    ) +
+                    readRecords(
+                        KHReadRequest.OvulationTest(startTime = startTime, endTime = endTime)
+                    ) +
+                    readRecords(
+                        KHReadRequest.OxygenSaturation(startTime = startTime, endTime = endTime)
+                    ) +
+                    readRecords(
+                        KHReadRequest.Power(
+                            unit = KHUnit.Power.Watt,
+                            startTime = startTime,
+                            endTime = endTime
+                        )
+                    ) +
+                    readRecords(
+                        KHReadRequest.RespiratoryRate(startTime = startTime, endTime = endTime)
+                    ) +
+                    readRecords(
+                        KHReadRequest.RestingHeartRate(startTime = startTime, endTime = endTime)
+                    ) +
+                    readRecords(
+                        KHReadRequest.SexualActivity(startTime = startTime, endTime = endTime)
+                    ) +
+                    readRecords(
+                        KHReadRequest.SleepSession(startTime = startTime, endTime = endTime)
+                    ) +
+                    readRecords(
+                        KHReadRequest.RunningSpeed(
+                            unit = KHUnit.Velocity.MetersPerSecond,
+                            startTime = startTime,
+                            endTime = endTime
+                        )
+                    ) +
+                    readRecords(
+                        KHReadRequest.CyclingSpeed(
+                            unit = KHUnit.Velocity.MetersPerSecond,
+                            startTime = startTime,
+                            endTime = endTime
+                        )
+                    ) +
+                    readRecords(
+                        KHReadRequest.StepCount(startTime = startTime, endTime = endTime)
+                    ) +
+                    readRecords(
+                        KHReadRequest.Vo2Max(startTime = startTime, endTime = endTime)
+                    ) +
+                    readRecords(
+                        KHReadRequest.Weight(
+                            unit = KHUnit.Mass.Gram,
+                            startTime = startTime,
+                            endTime = endTime
+                        )
+                    ) +
+                    readRecords(
+                        KHReadRequest.WheelChairPushes(startTime = startTime, endTime = endTime)
+                    )
+        }
+        println("All records: $allRecords")
     }
 }
 

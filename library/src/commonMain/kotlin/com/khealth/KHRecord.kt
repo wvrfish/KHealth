@@ -6,28 +6,31 @@ import kotlinx.datetime.Instant
 // TODO: Add emptyList check for record types with `samples`
 sealed class KHRecord(internal val dataType: KHDataType) {
     data class ActiveCaloriesBurned(
-        val energy: KHUnit.Energy,
+        val unit: KHUnit.Energy,
+        val value: Double,
         val startTime: Instant,
         val endTime: Instant
     ) : KHRecord(dataType = KHDataType.ActiveCaloriesBurned)
 
     /**
-     * Has separate params for Android & Apple because both operating systems use different units.
+     * Android and Apple use different units for this record
      */
     data class BasalMetabolicRate(
-        val rateAndroid: KHUnit.Power,
-        val rateApple: KHUnit.Energy,
+        val unit: KHEither<KHUnit.Power, KHUnit.Energy>,
+        val value: Double,
         val time: Instant
     ) : KHRecord(dataType = KHDataType.BasalMetabolicRate)
 
     data class BloodGlucose(
-        val level: KHUnit.BloodGlucose,
+        val unit: KHUnit.BloodGlucose,
+        val value: Double,
         val time: Instant
     ) : KHRecord(dataType = KHDataType.BloodGlucose)
 
     data class BloodPressure(
-        val systolic: KHUnit.Pressure,
-        val diastolic: KHUnit.Pressure,
+        val unit: KHUnit.Pressure,
+        val systolicValue: Double,
+        val diastolicValue: Double,
         val time: Instant
     ) : KHRecord(dataType = KHDataType.BloodPressure)
 
@@ -37,7 +40,8 @@ sealed class KHRecord(internal val dataType: KHDataType) {
     ) : KHRecord(dataType = KHDataType.BodyFat)
 
     data class BodyTemperature(
-        val temperature: KHUnit.Temperature,
+        val unit: KHUnit.Temperature,
+        val value: Double,
         val time: Instant
     ) : KHRecord(dataType = KHDataType.BodyTemperature)
 
@@ -45,7 +49,8 @@ sealed class KHRecord(internal val dataType: KHDataType) {
      * Available on Android only.
      */
     data class BodyWaterMass(
-        val mass: KHUnit.Mass,
+        val unit: KHUnit.Mass,
+        val value: Double,
         val time: Instant
     ) : KHRecord(dataType = KHDataType.BodyWaterMass)
 
@@ -53,7 +58,8 @@ sealed class KHRecord(internal val dataType: KHDataType) {
      * Available on Android only.
      */
     data class BoneMass(
-        val mass: KHUnit.Mass,
+        val unit: KHUnit.Mass,
+        val value: Double,
         val time: Instant
     ) : KHRecord(dataType = KHDataType.BoneMass)
 
@@ -72,7 +78,8 @@ sealed class KHRecord(internal val dataType: KHDataType) {
     ) : KHRecord(dataType = KHDataType.CyclingPedalingCadence)
 
     data class Distance(
-        val distance: KHUnit.Length,
+        val unit: KHUnit.Length,
+        val value: Double,
         val startTime: Instant,
         val endTime: Instant
     ) : KHRecord(dataType = KHDataType.Distance)
@@ -81,7 +88,8 @@ sealed class KHRecord(internal val dataType: KHDataType) {
      * Available on Android only.
      */
     data class ElevationGained(
-        val elevation: KHUnit.Length,
+        val unit: KHUnit.Length,
+        val value: Double,
         val startTime: Instant,
         val endTime: Instant
     ) : KHRecord(dataType = KHDataType.ElevationGained)
@@ -102,12 +110,14 @@ sealed class KHRecord(internal val dataType: KHDataType) {
     ) : KHRecord(dataType = KHDataType.HeartRateVariability)
 
     data class Height(
-        val height: KHUnit.Length,
+        val unit: KHUnit.Length,
+        val value: Double,
         val time: Instant
     ) : KHRecord(dataType = KHDataType.Height)
 
     data class Hydration(
-        val volume: KHUnit.Volume,
+        val unit: KHUnit.Volume,
+        val value: Double,
         val startTime: Instant,
         val endTime: Instant
     ) : KHRecord(dataType = KHDataType.Hydration)
@@ -117,7 +127,8 @@ sealed class KHRecord(internal val dataType: KHDataType) {
     ) : KHRecord(dataType = KHDataType.IntermenstrualBleeding)
 
     data class LeanBodyMass(
-        val mass: KHUnit.Mass,
+        val unit: KHUnit.Mass,
+        val value: Double,
         val time: Instant
     ) : KHRecord(dataType = KHDataType.LeanBodyMass)
 
@@ -130,7 +141,7 @@ sealed class KHRecord(internal val dataType: KHDataType) {
     ) : KHRecord(dataType = KHDataType.MenstruationPeriod)
 
     data class MenstruationFlow(
-        val flowType: KHMenstruationFlowType,
+        val type: KHMenstruationFlowType,
         val time: Instant,
         val isStartOfCycle: Boolean = false,
     ) : KHRecord(dataType = KHDataType.MenstruationFlow)
@@ -168,10 +179,23 @@ sealed class KHRecord(internal val dataType: KHDataType) {
         val samples: List<KHSleepStageSample>
     ) : KHRecord(dataType = KHDataType.SleepSession)
 
+    /**
+     * Available on Android only.
+     */
+    data class Speed(
+        val samples: List<KHSpeedSample>,
+    ) : KHRecord(dataType = KHDataType.Speed)
+
+    /**
+     * Available on Apple only.
+     */
     data class RunningSpeed(
         val samples: List<KHSpeedSample>,
     ) : KHRecord(dataType = KHDataType.RunningSpeed)
 
+    /**
+     * Available on Apple only.
+     */
     data class CyclingSpeed(
         val samples: List<KHSpeedSample>,
     ) : KHRecord(dataType = KHDataType.CyclingSpeed)
@@ -188,7 +212,8 @@ sealed class KHRecord(internal val dataType: KHDataType) {
     ) : KHRecord(dataType = KHDataType.Vo2Max)
 
     data class Weight(
-        val weight: KHUnit.Mass,
+        val unit: KHUnit.Mass,
+        val value: Double,
         val time: Instant,
     ) : KHRecord(dataType = KHDataType.Weight)
 

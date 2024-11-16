@@ -2,4 +2,4 @@ package com.khealth
 
 import kotlinx.datetime.Instant
 
-data class KHPowerSample(val power: KHUnit.Power, val time: Instant)
+data class KHPowerSample(val unit: KHUnit.Power, val value: Double, val time: Instant)

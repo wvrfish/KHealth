@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.khealth.KHealth
 import com.khealth.sample.sampleCheckAllPerms
+import com.khealth.sample.sampleReadData
 import com.khealth.sample.sampleRequestAllPerms
 import com.khealth.sample.sampleWriteData
 
@@ -74,6 +75,9 @@ class MainActivity : ComponentActivity() {
 
                         Button(onClick = { sampleWriteData(kHealth) }) {
                             Text("Write Data")
+                        }
+                        Button(onClick = { sampleReadData(kHealth) }) {
+                            Text("Read Data")
                         }
                     }
                 }
