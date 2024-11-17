@@ -2,12 +2,15 @@ import SwiftUI
 import sampleShared
 
 struct ContentView: View {
-	var body: some View {
+    var body: some View {
         VStack(spacing: 24) {
+            Text("Please open your logs to check outputs of all button clicks")
+                .multilineTextAlignment(.center)
+            
             Button("Check All Permissions") {
                 KHealthSample_appleKt.sampleCheckAllPerms()
             }
-
+            
             Button("Request All Permissions") {
                 KHealthSample_appleKt.sampleRequestAllPerms()
             }
@@ -20,11 +23,11 @@ struct ContentView: View {
                 KHealthSample_appleKt.sampleReadData()
             }
         }
-	}
+    }
 }
 
 struct ContentView_Previews: PreviewProvider {
-	static var previews: some View {
-		ContentView()
-	}
+    static var previews: some View {
+        ContentView()
+    }
 }

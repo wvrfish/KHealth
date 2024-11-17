@@ -36,6 +36,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.khealth.KHealth
 import com.khealth.sample.sampleCheckAllPerms
@@ -80,6 +81,11 @@ class MainActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(24.dp),
                     ) {
+                        Text(
+                            text = "Please open your logs to check outputs of all button clicks",
+                            textAlign = TextAlign.Center,
+                        )
+
                         Button(onClick = { sampleCheckAllPerms(kHealth) }) {
                             Text("Check All Permissions")
                         }
