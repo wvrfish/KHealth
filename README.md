@@ -17,9 +17,11 @@
 > [!NOTE]  
 > You can find the following app in the `sample*` directories (e.g. `sampleAndroidApp` and `sampleAppleApps`)
 
-https://github.com/user-attachments/assets/7c971734-ed7d-42f3-b38a-897997f59142
+https://github.com/user-attachments/assets/ef0ddd40-ce10-4143-9711-806d0687bc5b
 
-https://github.com/user-attachments/assets/2dcd7c92-5d15-47c0-9ecb-819aa1cd125b
+https://github.com/user-attachments/assets/2dfa8a48-412c-4dc5-8ccd-6ce5149eccca
+
+https://github.com/user-attachments/assets/8e6f609b-8f17-4370-8662-42ac0dad3bc0
 
 ## ⚙️ Usage
 
@@ -66,7 +68,7 @@ https://github.com/user-attachments/assets/2dcd7c92-5d15-47c0-9ecb-819aa1cd125b
     )
    ```
    
-4. Or Request Permissions
+4. Request Permissions
 
    ```kotlin
     val permissionStatuses: Set<KHPermissionWithStatus> = kHealth.requestPermissions(
@@ -127,6 +129,7 @@ https://github.com/user-attachments/assets/2dcd7c92-5d15-47c0-9ecb-819aa1cd125b
         }
    }
    ```
+   
 7. Read records
    ```kotlin
     val heartRateRecords = kHealth.readRecords(
