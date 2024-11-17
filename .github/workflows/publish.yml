@@ -37,6 +37,15 @@ jobs:
       - name: Run Tests
         run: ./gradlew :khealth:clean :khealth:test
 
+      - name: Build Docs
+        run: ./gradlew :khealth:dokkaHtml
+
+      - name: Publish Docs
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: docs
+          folder: khealth/build/dokka/html
+
       - name: Publish Library
         run: |
           echo "Publishing and Releasing library 🚀"
