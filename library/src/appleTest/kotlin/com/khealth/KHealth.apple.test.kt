@@ -244,11 +244,12 @@ class KHealthTests {
         sut = KHealth(
             store = object : HKHealthStore() {
                 override fun authorizationStatusForType(type: HKObjectType): HKAuthorizationStatus {
-                    return if (type == caloriesPermission.dataType.toHKObjectTypesOrNull()) {
-                        HKAuthorizationStatusSharingAuthorized
-                    } else {
-                        HKAuthorizationStatusSharingDenied
-                    }
+                    val containsType = caloriesPermission.dataType
+                        .toHKObjectTypesOrNull()
+                        ?.contains(type) == true
+
+                    return if (containsType) HKAuthorizationStatusSharingAuthorized
+                    else HKAuthorizationStatusSharingDenied
                 }
 
                 override fun requestAuthorizationToShareTypes(

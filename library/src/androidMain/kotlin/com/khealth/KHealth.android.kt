@@ -45,6 +45,7 @@ actual class KHealth {
         this.coroutineScope = coroutineScope
         this.testIsHealthStoreAvailable = isHealthStoreAvailable
         this.permissionsChannel = permissionsChannel
+        this.isTestMode = true
     }
 
     private var activity: ComponentActivity? = null
@@ -53,6 +54,7 @@ actual class KHealth {
     private val coroutineScope: CoroutineScope
     private var testIsHealthStoreAvailable: Boolean? = null
     private val permissionsChannel: Channel<Set<String>>
+    private var isTestMode = false
 
     private lateinit var permissionsLauncher: ActivityResultLauncher<Set<String>>
 
@@ -92,7 +94,7 @@ actual class KHealth {
 
         if (::permissionsLauncher.isInitialized) {
             permissionsLauncher.launch(permissionSets.flatten().map { it.first }.toSet())
-        } else {
+        } else if (!isTestMode) {
             logError(HealthStoreNotInitialisedException)
         }
 

@@ -115,35 +115,30 @@ actual class KHealth {
     ): Set<KHPermissionWithStatus> {
         try {
             verifyHealthStoreAvailability()
-            val permissionsWithStatuses = permissions.mapNotNull { permission ->
-                val types = permission.dataType.toHKObjectTypesOrNull()?.filterNotNull()
-
-                if (types == null) {
-                    logDebug("Type for $permission not found!")
-                    return@mapNotNull null
+            val permissionsWithStatuses = permissions
+                .mapNotNull { permission ->
+                    permission.dataType
+                        .toHKObjectTypesOrNull()
+                        ?.filterNotNull()
+                        ?.map { type -> type to permission }
                 }
-
-                val isWriteGranted = types.map { type ->
-                    when (store.authorizationStatusForType(type)) {
-                        HKAuthorizationStatusSharingAuthorized -> KHPermissionStatus.Granted
-                        HKAuthorizationStatusSharingDenied -> KHPermissionStatus.Denied
-                        HKAuthorizationStatusNotDetermined -> KHPermissionStatus.NotDetermined
-                        else -> throw Exception("Unknown authorization status!")
-                    }
-                }.all { status -> status == KHPermissionStatus.Granted }
-
-                KHPermissionWithStatus(
-                    permission = permission,
-                    // HealthKit does not provide status for READ permissions for privacy concerns
-                    readStatus = KHPermissionStatus.NotDetermined,
-                    writeStatus = when {
-                        !permission.write -> KHPermissionStatus.NotDetermined
-                        isWriteGranted -> KHPermissionStatus.Granted
-                        else -> KHPermissionStatus.Denied
-                    },
-                )
-            }
-
+                .flatten()
+                .map { pair ->
+                    val permission: KHPermission = pair.second
+                    KHPermissionWithStatus(
+                        permission = permission,
+                        // HealthKit does not provide status for READ permissions for privacy
+                        // concerns
+                        readStatus = KHPermissionStatus.NotDetermined,
+                        writeStatus = if (!permission.write) KHPermissionStatus.NotDetermined
+                        else when (store.authorizationStatusForType(pair.first)) {
+                            HKAuthorizationStatusSharingAuthorized -> KHPermissionStatus.Granted
+                            HKAuthorizationStatusSharingDenied -> KHPermissionStatus.Denied
+                            HKAuthorizationStatusNotDetermined -> KHPermissionStatus.NotDetermined
+                            else -> throw Exception("Unknown authorization status!")
+                        },
+                    )
+                }
             return permissionsWithStatuses.toSet()
         } catch (t: Throwable) {
             logError(t)
