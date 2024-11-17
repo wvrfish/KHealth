@@ -35,7 +35,7 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.coroutines.core)
             implementation(libs.kotlin.dateTime)
-            implementation(projects.library)
+            implementation(projects.khealth)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

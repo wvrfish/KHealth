@@ -35,7 +35,7 @@ jobs:
         run: ./gradlew build
 
       - name: Run Tests
-        run: ./gradlew :library:clean :library:test
+        run: ./gradlew :khealth:clean :khealth:test
 
       - name: Publish Library
         run: |

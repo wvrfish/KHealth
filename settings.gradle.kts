@@ -17,7 +17,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "KHealth"
-include(":library")
+rootProject.name = "KotlinHealth"
+include(":khealth")
 include(":sampleAndroidApp")
 include(":sampleShared")
