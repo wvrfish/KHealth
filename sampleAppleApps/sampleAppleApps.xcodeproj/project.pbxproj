@@ -186,7 +186,7 @@
 			attributes = {
 				LastSwiftUpdateCheck = 1610;
 				LastUpgradeCheck = 1130;
-				ORGANIZATIONNAME = orgName;
+				ORGANIZATIONNAME = KHealth;
 				TargetAttributes = {
 					506B95002CDC75AF005E668E = {
 						CreatedOnToolsVersion = 16.1;

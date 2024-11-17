@@ -15,6 +15,10 @@ struct ContentView: View {
             Button("Write Data") {
                 KHealthSample_appleKt.sampleWriteData()
             }
+            
+            Button("Read Data") {
+                KHealthSample_appleKt.sampleReadData()
+            }
         }
 	}
 }
