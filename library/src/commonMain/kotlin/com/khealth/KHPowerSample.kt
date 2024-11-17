@@ -17,4 +17,12 @@ package com.khealth
 
 import kotlinx.datetime.Instant
 
+/**
+ * Represents a single measurement of power. For example, using a power meter when exercising on a
+ * stationary bike.
+ *
+ * @param unit The measurement scale of this record
+ * @param time The point in time when the measurement was taken
+ * @param value Power generated, in Power unit (Valid range: 0-100000 Watts)
+ */
 data class KHPowerSample(val unit: KHUnit.Power, val value: Double, val time: Instant)

@@ -15,4 +15,7 @@
 
 package com.khealth
 
+/**
+ * Represents a self-assessed description (look and feel) of the cervical mucus for a user.
+ */
 enum class KHCervicalMucusAppearance { Dry, Sticky, Creamy, Watery, EggWhite }

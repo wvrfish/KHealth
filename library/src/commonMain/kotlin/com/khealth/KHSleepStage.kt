@@ -15,4 +15,7 @@
 
 package com.khealth
 
+/**
+ * Captures the sleep stage the user entered during a sleep session.
+ */
 enum class KHSleepStage { Awake, AwakeInBed, AwakeOutOfBed, Deep, Light, REM, Sleeping, Unknown }

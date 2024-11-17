@@ -103,7 +103,7 @@ actual class KHealth {
             }
         }
 
-    internal actual fun verifyHealthStoreAvailability() {
+    private fun verifyHealthStoreAvailability() {
         if (!isHealthStoreAvailable) throw HealthStoreNotAvailableException
     }
 

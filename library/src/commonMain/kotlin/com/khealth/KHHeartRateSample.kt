@@ -17,4 +17,11 @@ package com.khealth
 
 import kotlinx.datetime.Instant
 
+/**
+ * Represents a single measurement of the heart rate ([KHRecord.HeartRate]).
+ *
+ * @param time The point in time when the measurement was taken.
+ * // TODO: Ensure this validation range is respected on all platforms
+ * @param beatsPerMinute Heart beats per minute. Validation range: 1-300.
+ */
 data class KHHeartRateSample(val beatsPerMinute: Long, val time: Instant)

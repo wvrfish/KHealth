@@ -15,6 +15,9 @@
 
 package com.khealth
 
+/**
+ * The measurement scale of various types of values.
+ */
 sealed class KHUnit {
     sealed class BloodGlucose : KHUnit() {
         data object MillimolesPerLiter : BloodGlucose()

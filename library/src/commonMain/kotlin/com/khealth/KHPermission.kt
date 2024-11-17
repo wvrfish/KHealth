@@ -15,4 +15,12 @@
 
 package com.khealth
 
+/**
+ * Depicts an instance of the app's request to the operating system to provide it with the access to
+ * read and/or write a particular kind of data from the health store.
+ *
+ * @param dataType Depicts the kind of values the app wants to read from the health store
+ * @param read Whether the app wants to be able to read the [dataType] from health store
+ * @param write Whether the app wants to be able to write the [dataType] from health store
+ */
 data class KHPermission(val dataType: KHDataType, val read: Boolean, val write: Boolean)

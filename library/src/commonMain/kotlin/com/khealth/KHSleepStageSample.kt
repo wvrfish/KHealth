@@ -17,4 +17,12 @@ package com.khealth
 
 import kotlinx.datetime.Instant
 
+/**
+ * Represents a single measurement of [KHRecord.SleepSession].
+ *
+ * @param stage Describes the distinct phases of sleep (like REM, Deep, Light, etc.)
+ * @param startTime The start instant of the interval over which the value this measurement was
+ * captured
+ * @param endTime The end instant of the interval over which the value this measurement was captured
+ */
 data class KHSleepStageSample(val stage: KHSleepStage, val startTime: Instant, val endTime: Instant)

@@ -15,4 +15,8 @@
 
 package com.khealth
 
+/**
+ * Refers to the pattern or characteristics of menstrual bleeding, such as light, moderate, or heavy
+ * flow, and its duration and consistency throughout the cycle.
+ */
 enum class KHMenstruationFlowType { Unknown, Light, Medium, Heavy }

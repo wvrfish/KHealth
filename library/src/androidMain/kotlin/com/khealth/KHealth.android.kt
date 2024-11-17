@@ -74,7 +74,7 @@ actual class KHealth {
         get() = testIsHealthStoreAvailable
             ?: (HealthConnectClient.getSdkStatus(activity!!) == HealthConnectClient.SDK_AVAILABLE)
 
-    internal actual fun verifyHealthStoreAvailability() {
+    private fun verifyHealthStoreAvailability() {
         if (!isHealthStoreAvailable) throw HealthStoreNotAvailableException
     }
 

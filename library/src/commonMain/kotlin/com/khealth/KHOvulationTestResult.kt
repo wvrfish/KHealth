@@ -15,4 +15,14 @@
 
 package com.khealth
 
+/**
+ * An ovulation test checks for a rise in a hormone called luteinizing hormone (LH) in your urine,
+ * which happens just before ovulation.
+ *
+ * - **Positive**: The test shows a high level of LH, meaning ovulation is likely happening soon.
+ * - **Negative**: No rise in LH, meaning you're not close to ovulation yet.
+ * - **High**: The test detects a very high LH level, indicating you’re near or at ovulation.
+ * - **Inconclusive**: The test results are unclear, often due to factors like incorrect usage or a
+ * faulty test.
+ */
 enum class KHOvulationTestResult { High, Negative, Positive, Inconclusive }

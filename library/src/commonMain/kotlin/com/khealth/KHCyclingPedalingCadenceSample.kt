@@ -17,4 +17,7 @@ package com.khealth
 
 import kotlinx.datetime.Instant
 
+/**
+ * Represents a single measurement of [KHRecord.CyclingPedalingCadence].
+ */
 data class KHCyclingPedalingCadenceSample(val revolutionsPerMinute: Double, val time: Instant)

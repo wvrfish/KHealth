@@ -15,10 +15,27 @@
 
 package com.khealth
 
+/**
+ * Depicts the kind of response from the health store when a [KHRecord] is written onto it. The
+ * transaction can either Success completely, Fail completely, or Fail partially.
+ */
 sealed class KHWriteResponse {
+    /**
+     * Depicts that a write transaction onto the health store failed completely (i.e. no [KHRecord]s
+     * were written).
+     */
     data class Failed(val throwable: Throwable) : KHWriteResponse()
 
     // TODO: Check if you can return which records failed
+    /**
+     * Depicts that a write transaction onto the health store failed partially (i.e. some
+     * [KHRecord]s were written).
+     */
     data object SomeFailed : KHWriteResponse()
+
+    /**
+     * Depicts that a write transaction onto the health store succeeded completely (i.e. all
+     * [KHRecord]s were written).
+     */
     data object Success : KHWriteResponse()
 }

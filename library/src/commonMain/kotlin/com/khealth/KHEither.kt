@@ -15,4 +15,17 @@
 
 package com.khealth
 
-data class KHEither<T, U>(val left: T, val right: U)
+/**
+ * Represents a disjoint union entity, generally used to depict objects that are supported on both
+ * Android and Apple platforms but use different return types internally.
+ *
+ * At any given point in time, only one of these values will be available, hence the member
+ * properties [isLeft] and [isRight] will come in handy in such cases.
+ *
+ * @param left The unit represented by Android
+ * @param right The unit represented by Apple
+ */
+data class KHEither<T, U>(val left: T, val right: U) {
+    val isLeft: Boolean get() = left != null
+    val isRight: Boolean get() = right != null
+}

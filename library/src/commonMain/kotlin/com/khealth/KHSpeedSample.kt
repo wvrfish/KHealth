@@ -17,4 +17,11 @@ package com.khealth
 
 import kotlinx.datetime.Instant
 
+/**
+ * Represents a single measurement of the speed, a scalar magnitude.
+ * @param unit The measurement scale of this record
+ * @param time The point in time when the measurement was taken
+ * // TODO: Ensure this validation range is respected on all platforms
+ * @param value Speed in Velocity unit (Valid range: 0-1000000 meters/ sec)
+ */
 data class KHSpeedSample(val unit: KHUnit.Velocity, val value: Double, val time: Instant)
