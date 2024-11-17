@@ -1,21 +1,12 @@
-import org.jetbrains.dokka.base.DokkaBase
-import org.jetbrains.dokka.base.DokkaBaseConfiguration
-import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
     alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.dokka)
+    alias(libs.plugins.dokkatoo)
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.mavenPublish)
     alias(libs.plugins.mokkery)
-}
-
-buildscript {
-    dependencies {
-        classpath(libs.dokka.base)
-    }
 }
 
 kotlin {
@@ -83,9 +74,10 @@ android {
     }
 }
 
-tasks.withType<DokkaTask>().configureEach {
-    pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
-        customAssets = listOf(file("dokka_assets/logo-icon.svg"))
-        footerMessage = "(c) 2024 Shubham Singh"
+dokkatoo {
+    moduleName.set("KHealth")
+    pluginsConfiguration.html {
+        customAssets.from("dokka_assets/logo-icon.svg")
+        footerMessage.set("(c) 2024 Shubham Singh")
     }
 }
