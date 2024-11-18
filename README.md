@@ -143,18 +143,18 @@ https://github.com/user-attachments/assets/8e6f609b-8f17-4370-8662-42ac0dad3bc0
 
 ## 🚀 Getting Started
 
-![Sonatype Nexus (Snapshots)](https://img.shields.io/nexus/s/io.github.shubhamsinghshubham777/khealth?server=https%3A%2F%2Fs01.oss.sonatype.org&style=flat&label=Latest%20Version)
+![Maven Central Version](https://img.shields.io/maven-central/v/io.github.shubhamsinghshubham777/khealth?label=Stable)
 
 Add the following to your shared module's `build.gradle.kts`:
 ```kotlin
-implementation("io.github.shubhamsinghshubham777:khealth:0.0.2-SNAPSHOT")
+implementation("io.github.shubhamsinghshubham777:khealth:0.0.1")
 ```
 
 or add it to your version catalog:
 
 ```toml
 [versions]
-khealth = "0.0.2-SNAPSHOT"
+khealth = "0.0.1"
 
 [libraries]
 khealth = { module = "io.github.shubhamsinghshubham777:khealth", version.ref = "khealth" }
@@ -175,6 +175,8 @@ kotlin {
 ```
 
 ### For SNAPSHOT versions
+![Sonatype Nexus (Snapshots)](https://img.shields.io/nexus/s/io.github.shubhamsinghshubham777/khealth?server=https%3A%2F%2Fs01.oss.sonatype.org&style=flat&label=Snapshot)
+
 Add the following to your project level `settings.gradle.kts`:
 ```kotlin
 dependencyResolutionManagement {
