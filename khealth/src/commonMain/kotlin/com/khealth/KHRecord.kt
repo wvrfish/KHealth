@@ -322,7 +322,11 @@ sealed class KHRecord(internal val dataType: KHDataType) {
      * Captures a description of how heavy a user's menstrual flow was (light, medium, or heavy).
      * Each record represents a description of how heavy the user's menstrual bleeding was.
      *
+     * @param type The pattern or characteristics of menstrual bleeding, such as light, moderate,
+     * or heavy flow
      * @param time Time instant of the interval over which the value this record was captured
+     * @param isStartOfCycle Metadata that describes whether this event is the start of the
+     * menstruation cycle (applied on `Apple` platforms only)
      */
     data class MenstruationFlow(
         val type: KHMenstruationFlowType,
