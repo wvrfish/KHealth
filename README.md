@@ -10,12 +10,16 @@
     <img src="http://img.shields.io/badge/-watchos-C0C0C0.svg?style=flat" />
 </p>
 
-**KHealth** (_short for Kotlin Health_) is a simple Kotlin Multiplatform wrapper over Android's [Health Connect](https://developer.android.com/health-and-fitness/guides/health-connect) and Apple's [HealthKit](https://developer.apple.com/documentation/healthkit) APIs. It provides a simple and effective way to consume these native APIs in a Kotlin/Compose Multiplatform environment.
+**KHealth** (_short for Kotlin Health_) is a simple Kotlin Multiplatform wrapper over
+Android's [Health Connect](https://developer.android.com/health-and-fitness/guides/health-connect)
+and Apple's [HealthKit](https://developer.apple.com/documentation/healthkit) APIs. It provides a
+simple and effective way to consume these native APIs in a Kotlin/Compose Multiplatform environment.
 
 ## Demo
 
 > [!NOTE]  
-> You can find the following app in the `sample*` directories (e.g. `sampleAndroidApp` and `sampleAppleApps`)
+> You can find the following app in the `sample*` directories (e.g. `sampleAndroidApp` and
+`sampleAppleApps`)
 
 https://github.com/user-attachments/assets/ef0ddd40-ce10-4143-9711-806d0687bc5b
 
@@ -23,9 +27,81 @@ https://github.com/user-attachments/assets/2dfa8a48-412c-4dc5-8ccd-6ce5149eccca
 
 https://github.com/user-attachments/assets/8e6f609b-8f17-4370-8662-42ac0dad3bc0
 
+## 🚀 Getting Started
+
+![Maven Central Version](https://img.shields.io/maven-central/v/io.github.shubhamsinghshubham777/khealth?label=Stable)
+
+Add the following to your shared module's `build.gradle.kts`:
+
+```kotlin
+implementation("io.github.shubhamsinghshubham777:khealth:0.0.1")
+```
+
+or add it to your version catalog:
+
+```toml
+[versions]
+khealth = "0.0.1"
+
+[libraries]
+khealth = { module = "io.github.shubhamsinghshubham777:khealth", version.ref = "khealth" }
+
+[plugins]
+```
+
+and use it in your `build.gradle.kts`:
+
+```kotlin
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.khealth)
+        }
+    }
+}
+```
+
 ## ⚙️ Usage
 
-1. Instantiate
+1. Add dependencies in AndroidManifest.xml (Android only)
+
+   | Type                    | Permissions                                                                                                        |
+   |-------------------------|--------------------------------------------------------------------------------------------------------------------|
+   | ACTIVE_CALORIES_BURNED  | android.permission.health.READ_ACTIVE_CALORIES_BURNED<br/>android.permission.health.WRITE_ACTIVE_CALORIES_BURNED   |
+   | BASAL_METABOLIC_RATE    | android.permission.health.READ_BASAL_METABOLIC_RATE<br/>android.permission.health.WRITE_BASAL_METABOLIC_RATE       |
+   | BLOOD_GLUCOSE           | android.permission.health.READ_BLOOD_GLUCOSE<br/>android.permission.health.WRITE_BLOOD_GLUCOSE                     |
+   | BLOOD_PRESSURE          | android.permission.health.READ_BLOOD_PRESSURE<br/>android.permission.health.WRITE_BLOOD_PRESSURE                   |
+   | BODY_FAT                | android.permission.health.READ_BODY_FAT<br/>android.permission.health.WRITE_BODY_FAT                               |
+   | BODY_TEMPERATURE        | android.permission.health.READ_BODY_TEMPERATURE<br/>android.permission.health.WRITE_BODY_TEMPERATURE               |
+   | BODY_WATER_MASS         | android.permission.health.READ_BODY_WATER_MASS<br/>android.permission.health.WRITE_BODY_WATER_MASS                 |
+   | BONE_MASS               | android.permission.health.READ_BONE_MASS<br/>android.permission.health.WRITE_BONE_MASS                             |
+   | CERVICAL_MUCUS          | android.permission.health.READ_CERVICAL_MUCUS<br/>android.permission.health.WRITE_CERVICAL_MUCUS                   |
+   | EXERCISE                | android.permission.health.READ_EXERCISE<br/>android.permission.health.WRITE_EXERCISE                               |
+   | DISTANCE                | android.permission.health.READ_DISTANCE<br/>android.permission.health.WRITE_DISTANCE                               |
+   | ELEVATION_GAINED        | android.permission.health.READ_ELEVATION_GAINED<br/>android.permission.health.WRITE_ELEVATION_GAINED               |
+   | FLOORS_CLIMBED          | android.permission.health.READ_FLOORS_CLIMBED<br/>android.permission.health.WRITE_FLOORS_CLIMBED                   |
+   | HEART_RATE              | android.permission.health.READ_HEART_RATE<br/>android.permission.health.WRITE_HEART_RATE                           |
+   | HEART_RATE_VARIABILITY  | android.permission.health.READ_HEART_RATE_VARIABILITY<br/>android.permission.health.WRITE_HEART_RATE_VARIABILITY   |
+   | HEIGHT                  | android.permission.health.READ_HEIGHT<br/>android.permission.health.WRITE_HEIGHT                                   |
+   | HYDRATION               | android.permission.health.READ_HYDRATION<br/>android.permission.health.WRITE_HYDRATION                             |
+   | INTERMENSTRUAL_BLEEDING | android.permission.health.READ_INTERMENSTRUAL_BLEEDING<br/>android.permission.health.WRITE_INTERMENSTRUAL_BLEEDING |
+   | LEAN_BODY_MASS          | android.permission.health.READ_LEAN_BODY_MASS<br/>android.permission.health.WRITE_LEAN_BODY_MASS                   |
+   | MENSTRUATION            | android.permission.health.READ_MENSTRUATION<br/>android.permission.health.WRITE_MENSTRUATION                       |
+   | MENSTRUATION            | android.permission.health.READ_MENSTRUATION<br/>android.permission.health.WRITE_MENSTRUATION                       |
+   | OVULATION_TEST          | android.permission.health.READ_OVULATION_TEST<br/>android.permission.health.WRITE_OVULATION_TEST                   |
+   | OXYGEN_SATURATION       | android.permission.health.READ_OXYGEN_SATURATION<br/>android.permission.health.WRITE_OXYGEN_SATURATION             |
+   | POWER                   | android.permission.health.READ_POWER<br/>android.permission.health.WRITE_POWER                                     |
+   | RESPIRATORY_RATE        | android.permission.health.READ_RESPIRATORY_RATE<br/>android.permission.health.WRITE_RESPIRATORY_RATE               |
+   | RESTING_HEART_RATE      | android.permission.health.READ_RESTING_HEART_RATE<br/>android.permission.health.WRITE_RESTING_HEART_RATE           |
+   | SEXUAL_ACTIVITY         | android.permission.health.READ_SEXUAL_ACTIVITY<br/>android.permission.health.WRITE_SEXUAL_ACTIVITY                 |
+   | SLEEP                   | android.permission.health.READ_SLEEP<br/>android.permission.health.WRITE_SLEEP                                     |
+   | SPEED                   | android.permission.health.READ_SPEED<br/>android.permission.health.WRITE_SPEED                                     |
+   | STEPS                   | android.permission.health.READ_STEPS<br/>android.permission.health.WRITE_STEPS                                     |
+   | VO2_MAX                 | android.permission.health.READ_VO2_MAX<br/>android.permission.health.WRITE_VO2_MAX                                 |
+   | WEIGHT                  | android.permission.health.READ_WEIGHT<br/>android.permission.health.WRITE_WEIGHT                                   |
+   | WHEELCHAIR_PUSHES       | android.permission.health.READ_WHEELCHAIR_PUSHES<br/>android.permission.health.WRITE_WHEELCHAIR_PUSHES             |
+
+2. Instantiate
 
     ```kotlin
     // On Apple (iOS, watchOS)
@@ -39,7 +115,7 @@ https://github.com/user-attachments/assets/8e6f609b-8f17-4370-8662-42ac0dad3bc0
     }
     ```
 
-2. Initialise (only required on Android)
+3. Initialise (only required on Android)
 
     ```kotlin
     // Inside a `ComponentActivity`
@@ -49,8 +125,8 @@ https://github.com/user-attachments/assets/8e6f609b-8f17-4370-8662-42ac0dad3bc0
       kHealth.initialise()
     }
     ```
-   
-3. Check Permission Status
+
+4. Check Permission Status
 
    ```kotlin
     val permissionStatuses: Set<KHPermissionWithStatus> = kHealth.checkPermissions(
@@ -67,8 +143,8 @@ https://github.com/user-attachments/assets/8e6f609b-8f17-4370-8662-42ac0dad3bc0
         // Add as many requests as you want
     )
    ```
-   
-4. Request Permissions
+
+5. Request Permissions
 
    ```kotlin
     val permissionStatuses: Set<KHPermissionWithStatus> = kHealth.requestPermissions(
@@ -85,8 +161,8 @@ https://github.com/user-attachments/assets/8e6f609b-8f17-4370-8662-42ac0dad3bc0
         // Add as many requests as you want
     )
    ```
-   
-5. Check if permission was granted
+
+6. Check if permission was granted
 
     ```kotlin
     val caloriesWriteStatus = permissionStatuses.first {
@@ -95,8 +171,8 @@ https://github.com/user-attachments/assets/8e6f609b-8f17-4370-8662-42ac0dad3bc0
 
     val wasWritePermissionGranted = caloriesWriteStatus == KHPermissionStatus.Granted
     ```
-   
-6. Write records
+
+7. Write records
 
    ```kotlin
    if (wasWritePermissionGranted) {
@@ -129,8 +205,8 @@ https://github.com/user-attachments/assets/8e6f609b-8f17-4370-8662-42ac0dad3bc0
         }
    }
    ```
-   
-7. Read records
+
+8. Read records
    ```kotlin
     val heartRateRecords = kHealth.readRecords(
         KHReadRequest.HeartRate(
@@ -141,52 +217,50 @@ https://github.com/user-attachments/assets/8e6f609b-8f17-4370-8662-42ac0dad3bc0
     println("Heart Rate records: $heartRateRecords")
    ```
 
-## 🚀 Getting Started
+## Supported Data Types (based on platforms)
 
-![Maven Central Version](https://img.shields.io/maven-central/v/io.github.shubhamsinghshubham777/khealth?label=Stable)
+KHealth supports reading and writing the following data types on the following platforms:
 
-Add the following to your shared module's `build.gradle.kts`:
-```kotlin
-implementation("io.github.shubhamsinghshubham777:khealth:0.0.1")
-```
+| Type                   | Android | Apple (iOS & watchOS) |
+|------------------------|---------|-----------------------|
+| ActiveCaloriesBurned   | ✅       | ✅                     |
+| BasalMetabolicRate     | ✅       | ✅                     |
+| BloodGlucose           | ✅       | ✅                     |
+| BloodPressure          | ✅       | ✅                     |
+| BodyFat                | ✅       | ✅                     |
+| BodyTemperature        | ✅       | ✅                     |
+| BodyWaterMass          | ✅       | ❌                     |
+| BoneMass               | ✅       | ❌                     |
+| CervicalMucus          | ✅       | ✅                     |
+| CyclingPedalingCadence | ✅       | ❌                     |
+| Distance               | ✅       | ✅                     |
+| ElevationGained        | ✅       | ❌                     |
+| FloorsClimbed          | ✅       | ✅                     |
+| HeartRate              | ✅       | ✅                     |
+| HeartRateVariability   | ✅       | ✅                     |
+| Height                 | ✅       | ✅                     |
+| Hydration              | ✅       | ✅                     |
+| IntermenstrualBleeding | ✅       | ✅                     |
+| LeanBodyMass           | ✅       | ✅                     |
+| MenstruationPeriod     | ✅       | ❌                     |
+| MenstruationFlow       | ✅       | ✅                     |
+| OvulationTest          | ✅       | ✅                     |
+| OxygenSaturation       | ✅       | ✅                     |
+| Power                  | ✅       | ✅                     |
+| RespiratoryRate        | ✅       | ✅                     |
+| RestingHeartRate       | ✅       | ✅                     |
+| SexualActivity         | ✅       | ✅                     |
+| SleepSession           | ✅       | ✅                     |
+| Speed                  | ✅       | ❌                     |
+| RunningSpeed           | ❌       | ✅                     |
+| CyclingSpeed           | ❌       | ✅                     |
+| StepCount              | ✅       | ✅                     |
+| Vo2Max                 | ✅       | ✅                     |
+| Weight                 | ✅       | ✅                     |
+| WheelChairPushes       | ✅       | ✅                     |
 
-or add it to your version catalog:
-
-```toml
-[versions]
-khealth = "0.0.1"
-
-[libraries]
-khealth = { module = "io.github.shubhamsinghshubham777:khealth", version.ref = "khealth" }
-
-[plugins]
-```
-
-and use it in your `build.gradle.kts`:
-
-```kotlin
-kotlin {
-  sourceSets {
-    commonMain.dependencies {
-      implementation(libs.khealth)
-    }
-  }
-}
-```
-
-### For SNAPSHOT versions
-![Sonatype Nexus (Snapshots)](https://img.shields.io/nexus/s/io.github.shubhamsinghshubham777/khealth?server=https%3A%2F%2Fs01.oss.sonatype.org&style=flat&label=Snapshot)
-
-Add the following to your project level `settings.gradle.kts`:
-```kotlin
-dependencyResolutionManagement {
-    repositories {
-        ...
-        // Add this
-        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-    }
-}
-```
+>[!NOTE]
+> The unsupported data types will simply be ignored by all platforms.
 
 ## 🤝 Contributing
 
