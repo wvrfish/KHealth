@@ -21,11 +21,10 @@ simple and effective way to consume these native APIs in a Kotlin/Compose Multip
 > You can find the following app in the `sample*` directories (e.g. `sampleAndroidApp` and
 `sampleAppleApps`)
 
-https://github.com/user-attachments/assets/ef0ddd40-ce10-4143-9711-806d0687bc5b
 
-https://github.com/user-attachments/assets/2dfa8a48-412c-4dc5-8ccd-6ce5149eccca
-
-https://github.com/user-attachments/assets/8e6f609b-8f17-4370-8662-42ac0dad3bc0
+<video src="https://github.com/user-attachments/assets/ef0ddd40-ce10-4143-9711-806d0687bc5b"></video>
+<video src="https://github.com/user-attachments/assets/2dfa8a48-412c-4dc5-8ccd-6ce5149eccca"></video>
+<video src="https://github.com/user-attachments/assets/8e6f609b-8f17-4370-8662-42ac0dad3bc0"></video>
 
 ## 🚀 Getting Started
 
