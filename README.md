@@ -265,6 +265,7 @@ KHealth supports reading and writing the following data types on the following p
 | LeanBodyMass           | ✅       | ✅                     |
 | MenstruationPeriod     | ✅       | ❌                     |
 | MenstruationFlow       | ✅       | ✅                     |
+| Nutrition              | ✅       | ✅                     |
 | OvulationTest          | ✅       | ✅                     |
 | OxygenSaturation       | ✅       | ✅                     |
 | Power                  | ✅       | ✅                     |
