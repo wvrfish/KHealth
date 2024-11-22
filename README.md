@@ -33,14 +33,14 @@ simple and effective way to consume these native APIs in a Kotlin/Compose Multip
 Add the following to your shared module's `build.gradle.kts`:
 
 ```kotlin
-implementation("io.github.shubhamsinghshubham777:khealth:0.0.1")
+implementation("io.github.shubhamsinghshubham777:khealth:1.0.0")
 ```
 
 or add it to your version catalog:
 
 ```toml
 [versions]
-khealth = "0.0.1"
+khealth = "1.0.0"
 
 [libraries]
 khealth = { module = "io.github.shubhamsinghshubham777:khealth", version.ref = "khealth" }
