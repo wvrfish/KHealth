@@ -1,13 +1,16 @@
 <h1 align="center">🏥 KHealth 🏥</h1>
 
 <p align="center">
-    <img src="assets/logo.svg" width="200"  alt=""/>
+    <a href="https://mailchi.mp/kotlinweekly/kotlin-weekly-434#:~:text=Libraries-,KHealth,-KHealth%20is%20a">
+        <img src="http://img.shields.io/badge/Kotlin%20Weekly-%23434-694ba1?style=flat" />
+    </a>
+    <img src="http://img.shields.io/badge/platform-android-6EDB8D?style=flat" />
+    <img src="http://img.shields.io/badge/platform-ios-CDCDCD?style=flat" />
+    <img src="http://img.shields.io/badge/platform-watchos-C0C0C0?style=flat" />
 </p>
 
 <p align="center">
-    <img src="http://img.shields.io/badge/-android-6EDB8D.svg?style=flat" />
-    <img src="http://img.shields.io/badge/-ios-CDCDCD.svg?style=flat" />
-    <img src="http://img.shields.io/badge/-watchos-C0C0C0.svg?style=flat" />
+    <img src="assets/logo.svg" width="200"  alt=""/>
 </p>
 
 **KHealth** (_short for Kotlin Health_) is a simple Kotlin Multiplatform wrapper over
