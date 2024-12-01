@@ -65,7 +65,22 @@ kotlin {
 
 ## ⚙️ Usage
 
-1. (Android only) Add the following code in your `AndroidManifest.xml`:
+1. (Apple Only) Add the following code in your `Info.plist` file:
+    ```
+    <plist>
+    <dict>
+            ...
+            ...
+            ...
+    	<key>NSHealthUpdateUsageDescription</key>
+    	<string>We will sync your data with the Apple Health app to give you better insights</string>
+    	<key>NSHealthShareUsageDescription</key>
+    	<string>We will sync your data with the Apple Health app to give you better insights</string>
+    </dict>
+    </plist>
+    ```
+
+2. (Android only) Add the following code in your `AndroidManifest.xml`:
    ```xml
    <uses-permission android:name="..." />
    
@@ -100,46 +115,46 @@ kotlin {
    </application>
    ```
 
-2. (Android only) Add the dependencies you require to use in `AndroidManifest.xml`
+3. (Android only) Add the dependencies you require to use in `AndroidManifest.xml`
 
-   | Type                    | Permissions                                                                                                        |
-   |-------------------------|--------------------------------------------------------------------------------------------------------------------|
-   | ACTIVE_CALORIES_BURNED  | android.permission.health.READ_ACTIVE_CALORIES_BURNED<br/>android.permission.health.WRITE_ACTIVE_CALORIES_BURNED   |
-   | BASAL_METABOLIC_RATE    | android.permission.health.READ_BASAL_METABOLIC_RATE<br/>android.permission.health.WRITE_BASAL_METABOLIC_RATE       |
-   | BLOOD_GLUCOSE           | android.permission.health.READ_BLOOD_GLUCOSE<br/>android.permission.health.WRITE_BLOOD_GLUCOSE                     |
-   | BLOOD_PRESSURE          | android.permission.health.READ_BLOOD_PRESSURE<br/>android.permission.health.WRITE_BLOOD_PRESSURE                   |
-   | BODY_FAT                | android.permission.health.READ_BODY_FAT<br/>android.permission.health.WRITE_BODY_FAT                               |
-   | BODY_TEMPERATURE        | android.permission.health.READ_BODY_TEMPERATURE<br/>android.permission.health.WRITE_BODY_TEMPERATURE               |
-   | BODY_WATER_MASS         | android.permission.health.READ_BODY_WATER_MASS<br/>android.permission.health.WRITE_BODY_WATER_MASS                 |
-   | BONE_MASS               | android.permission.health.READ_BONE_MASS<br/>android.permission.health.WRITE_BONE_MASS                             |
-   | CERVICAL_MUCUS          | android.permission.health.READ_CERVICAL_MUCUS<br/>android.permission.health.WRITE_CERVICAL_MUCUS                   |
-   | DISTANCE                | android.permission.health.READ_DISTANCE<br/>android.permission.health.WRITE_DISTANCE                               |
-   | ELEVATION_GAINED        | android.permission.health.READ_ELEVATION_GAINED<br/>android.permission.health.WRITE_ELEVATION_GAINED               |
-   | EXERCISE                | android.permission.health.READ_EXERCISE<br/>android.permission.health.WRITE_EXERCISE                               |
-   | FLOORS_CLIMBED          | android.permission.health.READ_FLOORS_CLIMBED<br/>android.permission.health.WRITE_FLOORS_CLIMBED                   |
-   | HEART_RATE              | android.permission.health.READ_HEART_RATE<br/>android.permission.health.WRITE_HEART_RATE                           |
-   | HEART_RATE_VARIABILITY  | android.permission.health.READ_HEART_RATE_VARIABILITY<br/>android.permission.health.WRITE_HEART_RATE_VARIABILITY   |
-   | HEIGHT                  | android.permission.health.READ_HEIGHT<br/>android.permission.health.WRITE_HEIGHT                                   |
-   | HYDRATION               | android.permission.health.READ_HYDRATION<br/>android.permission.health.WRITE_HYDRATION                             |
-   | INTERMENSTRUAL_BLEEDING | android.permission.health.READ_INTERMENSTRUAL_BLEEDING<br/>android.permission.health.WRITE_INTERMENSTRUAL_BLEEDING |
-   | LEAN_BODY_MASS          | android.permission.health.READ_LEAN_BODY_MASS<br/>android.permission.health.WRITE_LEAN_BODY_MASS                   |
-   | MENSTRUATION            | android.permission.health.READ_MENSTRUATION<br/>android.permission.health.WRITE_MENSTRUATION                       |
-   | MENSTRUATION            | android.permission.health.READ_MENSTRUATION<br/>android.permission.health.WRITE_MENSTRUATION                       |
-   | NUTRITION               | android.permission.health.READ_NUTRITION<br/>android.permission.health.WRITE_NUTRITION                             |
-   | OVULATION_TEST          | android.permission.health.READ_OVULATION_TEST<br/>android.permission.health.WRITE_OVULATION_TEST                   |
-   | OXYGEN_SATURATION       | android.permission.health.READ_OXYGEN_SATURATION<br/>android.permission.health.WRITE_OXYGEN_SATURATION             |
-   | POWER                   | android.permission.health.READ_POWER<br/>android.permission.health.WRITE_POWER                                     |
-   | RESPIRATORY_RATE        | android.permission.health.READ_RESPIRATORY_RATE<br/>android.permission.health.WRITE_RESPIRATORY_RATE               |
-   | RESTING_HEART_RATE      | android.permission.health.READ_RESTING_HEART_RATE<br/>android.permission.health.WRITE_RESTING_HEART_RATE           |
-   | SEXUAL_ACTIVITY         | android.permission.health.READ_SEXUAL_ACTIVITY<br/>android.permission.health.WRITE_SEXUAL_ACTIVITY                 |
-   | SLEEP                   | android.permission.health.READ_SLEEP<br/>android.permission.health.WRITE_SLEEP                                     |
-   | SPEED                   | android.permission.health.READ_SPEED<br/>android.permission.health.WRITE_SPEED                                     |
-   | STEPS                   | android.permission.health.READ_STEPS<br/>android.permission.health.WRITE_STEPS                                     |
-   | VO2_MAX                 | android.permission.health.READ_VO2_MAX<br/>android.permission.health.WRITE_VO2_MAX                                 |
-   | WEIGHT                  | android.permission.health.READ_WEIGHT<br/>android.permission.health.WRITE_WEIGHT                                   |
-   | WHEELCHAIR_PUSHES       | android.permission.health.READ_WHEELCHAIR_PUSHES<br/>android.permission.health.WRITE_WHEELCHAIR_PUSHES             |
+   | Type                    | Permissions                                                                                                          |
+   |-------------------------|----------------------------------------------------------------------------------------------------------------------|
+   | ACTIVE_CALORIES_BURNED  | `android.permission.health.READ_ACTIVE_CALORIES_BURNED`<br/>`android.permission.health.WRITE_ACTIVE_CALORIES_BURNED`   |
+   | BASAL_METABOLIC_RATE    | `android.permission.health.READ_BASAL_METABOLIC_RATE`<br/>`android.permission.health.WRITE_BASAL_METABOLIC_RATE`       |
+   | BLOOD_GLUCOSE           | `android.permission.health.READ_BLOOD_GLUCOSE`<br/>`android.permission.health.WRITE_BLOOD_GLUCOSE`                     |
+   | BLOOD_PRESSURE          | `android.permission.health.READ_BLOOD_PRESSURE`<br/>`android.permission.health.WRITE_BLOOD_PRESSURE`                   |
+   | BODY_FAT                | `android.permission.health.READ_BODY_FAT`<br/>`android.permission.health.WRITE_BODY_FAT`                               |
+   | BODY_TEMPERATURE        | `android.permission.health.READ_BODY_TEMPERATURE`<br/>`android.permission.health.WRITE_BODY_TEMPERATURE`               |
+   | BODY_WATER_MASS         | `android.permission.health.READ_BODY_WATER_MASS`<br/>`android.permission.health.WRITE_BODY_WATER_MASS`                 |
+   | BONE_MASS               | `android.permission.health.READ_BONE_MASS`<br/>`android.permission.health.WRITE_BONE_MASS`                             |
+   | CERVICAL_MUCUS          | `android.permission.health.READ_CERVICAL_MUCUS`<br/>`android.permission.health.WRITE_CERVICAL_MUCUS`                   |
+   | DISTANCE                | `android.permission.health.READ_DISTANCE`<br/>`android.permission.health.WRITE_DISTANCE`                               |
+   | ELEVATION_GAINED        | `android.permission.health.READ_ELEVATION_GAINED`<br/>`android.permission.health.WRITE_ELEVATION_GAINED`               |
+   | EXERCISE                | `android.permission.health.READ_EXERCISE`<br/>`android.permission.health.WRITE_EXERCISE`                               |
+   | FLOORS_CLIMBED          | `android.permission.health.READ_FLOORS_CLIMBED`<br/>`android.permission.health.WRITE_FLOORS_CLIMBED`                   |
+   | HEART_RATE              | `android.permission.health.READ_HEART_RATE`<br/>`android.permission.health.WRITE_HEART_RATE`                           |
+   | HEART_RATE_VARIABILITY  | `android.permission.health.READ_HEART_RATE_VARIABILITY`<br/>`android.permission.health.WRITE_HEART_RATE_VARIABILITY`   |
+   | HEIGHT                  | `android.permission.health.READ_HEIGHT`<br/>`android.permission.health.WRITE_HEIGHT`                                   |
+   | HYDRATION               | `android.permission.health.READ_HYDRATION`<br/>`android.permission.health.WRITE_HYDRATION`                             |
+   | INTERMENSTRUAL_BLEEDING | `android.permission.health.READ_INTERMENSTRUAL_BLEEDING`<br/>`android.permission.health.WRITE_INTERMENSTRUAL_BLEEDING` |
+   | LEAN_BODY_MASS          | `android.permission.health.READ_LEAN_BODY_MASS`<br/>`android.permission.health.WRITE_LEAN_BODY_MASS`                   |
+   | MENSTRUATION            | `android.permission.health.READ_MENSTRUATION`<br/>`android.permission.health.WRITE_MENSTRUATION`                       |
+   | MENSTRUATION            | `android.permission.health.READ_MENSTRUATION`<br/>`android.permission.health.WRITE_MENSTRUATION`                       |
+   | NUTRITION               | `android.permission.health.READ_NUTRITION`<br/>`android.permission.health.WRITE_NUTRITION`                             |
+   | OVULATION_TEST          | `android.permission.health.READ_OVULATION_TEST`<br/>`android.permission.health.WRITE_OVULATION_TEST`                   |
+   | OXYGEN_SATURATION       | `android.permission.health.READ_OXYGEN_SATURATION`<br/>`android.permission.health.WRITE_OXYGEN_SATURATION`             |
+   | POWER                   | `android.permission.health.READ_POWER`<br/>`android.permission.health.WRITE_POWER`                                     |
+   | RESPIRATORY_RATE        | `android.permission.health.READ_RESPIRATORY_RATE`<br/>`android.permission.health.WRITE_RESPIRATORY_RATE`               |
+   | RESTING_HEART_RATE      | `android.permission.health.READ_RESTING_HEART_RATE`<br/>`android.permission.health.WRITE_RESTING_HEART_RATE`           |
+   | SEXUAL_ACTIVITY         | `android.permission.health.READ_SEXUAL_ACTIVITY`<br/>`android.permission.health.WRITE_SEXUAL_ACTIVITY`                 |
+   | SLEEP                   | `android.permission.health.READ_SLEEP`<br/>`android.permission.health.WRITE_SLEEP`                                     |
+   | SPEED                   | `android.permission.health.READ_SPEED`<br/>`android.permission.health.WRITE_SPEED`                                     |
+   | STEPS                   | `android.permission.health.READ_STEPS`<br/>`android.permission.health.WRITE_STEPS`                                     |
+   | VO2_MAX                 | `android.permission.health.READ_VO2_MAX`<br/>`android.permission.health.WRITE_VO2_MAX`                                 |
+   | WEIGHT                  | `android.permission.health.READ_WEIGHT`<br/>`android.permission.health.WRITE_WEIGHT`                                   |
+   | WHEELCHAIR_PUSHES       | `android.permission.health.READ_WHEELCHAIR_PUSHES`<br/>`android.permission.health.WRITE_WHEELCHAIR_PUSHES`             |
 
-3. Instantiate
+4. Instantiate
 
     ```kotlin
     // On Apple (iOS, watchOS)
@@ -153,7 +168,7 @@ kotlin {
     }
     ```
 
-4. Initialise (only required on Android)
+5. Initialise (only required on Android)
 
     ```kotlin
     // Inside a `ComponentActivity`
@@ -164,7 +179,7 @@ kotlin {
     }
     ```
 
-5. Check Permission Status
+6. Check Permission Status
 
    ```kotlin
     val permissionResponse: Set<KHPermission> = kHealth.checkPermissions(
@@ -174,7 +189,7 @@ kotlin {
     )
    ```
 
-6. Request Permissions
+7. Request Permissions
 
    ```kotlin
    // Same syntax as `checkPermissions`
@@ -185,7 +200,7 @@ kotlin {
     )
    ```
 
-7. Check if permission was granted
+8. Check if permission was granted
 
     ```kotlin
     val caloriesPermResponse = permissionResponse.first { response ->
@@ -195,7 +210,7 @@ kotlin {
     val wasWritePermissionGranted = caloriesPermResponse.write == true 
     ```
 
-8. Write records
+9. Write records
 
    ```kotlin
    if (wasWritePermissionGranted) {
@@ -229,7 +244,7 @@ kotlin {
    }
    ```
 
-9. Read records
+10. Read records
    ```kotlin
     val heartRateRecords = kHealth.readRecords(
         KHReadRequest.HeartRate(
