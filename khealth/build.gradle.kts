@@ -7,7 +7,11 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.mavenPublish)
     alias(libs.plugins.mokkery)
+    id("maven-publish")
 }
+
+val GITHUB_USER: String by project
+val GITHUB_TOKEN: String by project
 
 kotlin {
     androidTarget {
@@ -65,6 +69,10 @@ publishing {
     repositories {
         maven {
             setUrl("https://maven.pkg.github.com/wvrfish/KHealth")
+            credentials {
+                username = GITHUB_USER
+                password = GITHUB_TOKEN
+            }
         }
     }
 }
