@@ -61,6 +61,14 @@ kotlin {
     }
 }
 
+publishing {
+    repositories {
+        maven {
+            setUrl("https://maven.pkg.github.com/wvrfish/KHealth")
+        }
+    }
+}
+
 android {
     namespace = "com.khealth"
     compileSdk = libs.versions.targetSdk.get().toInt()

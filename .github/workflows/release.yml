@@ -1,0 +1,29 @@
+name: Release
+
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+    branches:
+      - 'main'
+
+jobs:
+  build:
+
+    runs-on: macos-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'adopt'
+
+      - name: Build
+        run: ./gradlew assemble --stacktrace
+
+      - name: Release library
+        run: ./gradlew shared:publish
