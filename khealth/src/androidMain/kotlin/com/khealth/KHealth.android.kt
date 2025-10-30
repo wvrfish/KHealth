@@ -26,7 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import kotlinx.datetime.toJavaInstant
+import kotlin.time.toJavaInstant
 
 actual class KHealth {
     constructor(activity: ComponentActivity) {

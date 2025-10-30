@@ -50,7 +50,15 @@ kotlin {
             implementation(libs.coroutines.test)
             implementation(libs.kotlin.test)
         }
+
+        all {
+            languageSettings {
+                optIn("kotlin.time.ExperimentalTime")
+            }
+        }
     }
+
+
 
     targets.configureEach {
         compilations.configureEach {
