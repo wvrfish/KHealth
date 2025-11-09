@@ -30,6 +30,10 @@ sealed class KHPermission {
         val write: Boolean = false
     ) : KHPermission()
 
+    data class BiologicalSex(
+        val read: Boolean = false
+    ) : KHPermission()
+
     data class BloodGlucose(
         val read: Boolean = false,
         val write: Boolean = false
@@ -75,6 +79,10 @@ sealed class KHPermission {
     data class CyclingSpeed(
         val read: Boolean = false,
         val write: Boolean = false
+    ) : KHPermission()
+
+    data class DateOfBirth(
+        val read: Boolean = false
     ) : KHPermission()
 
     data class Distance(

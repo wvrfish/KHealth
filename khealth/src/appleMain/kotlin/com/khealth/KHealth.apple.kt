@@ -15,14 +15,26 @@
 
 package com.khealth
 
+import kotlinx.cinterop.BetaInteropApi
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ObjCObjectVar
 import kotlinx.cinterop.UnsafeNumber
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.value
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.toKotlinInstant
 import kotlinx.datetime.toNSDate
+import platform.Foundation.NSCalendar
 import platform.Foundation.NSError
 import platform.Foundation.NSSortDescriptor
 import platform.HealthKit.HKAuthorizationStatusSharingAuthorized
+import platform.HealthKit.HKBiologicalSexFemale
+import platform.HealthKit.HKBiologicalSexMale
+import platform.HealthKit.HKBiologicalSexNotSet
+import platform.HealthKit.HKBiologicalSexOther
 import platform.HealthKit.HKCategorySample
 import platform.HealthKit.HKCategoryValueNotApplicable
 import platform.HealthKit.HKErrorAuthorizationNotDetermined
@@ -96,6 +108,8 @@ actual class KHealth {
                         } else false
                     )
 
+                    is KHPermission.BiologicalSex -> KHPermission.BiologicalSex(read = false)
+
                     is KHPermission.BloodGlucose -> KHPermission.BloodGlucose(
                         write = if (permission.write) {
                             store.authorizationStatusForType(ObjectType.Quantity.BasalMetabolicRate).isGranted
@@ -140,6 +154,8 @@ actual class KHealth {
                             store.authorizationStatusForType(ObjectType.Quantity.CyclingSpeed).isGranted
                         } else false
                     )
+
+                    is KHPermission.DateOfBirth -> KHPermission.DateOfBirth(read = false)
 
                     is KHPermission.Distance -> KHPermission.Distance(
                         write = if (permission.write) {
@@ -423,6 +439,10 @@ actual class KHealth {
                     if (permission.write) writePermissions.add(ObjectType.Quantity.BasalMetabolicRate)
                 }
 
+                is KHPermission.BiologicalSex -> {
+                    if (permission.read) readPermissions.add(ObjectType.Characteristic.BiologicalSex)
+                }
+
                 is KHPermission.BloodGlucose -> {
                     if (permission.read) readPermissions.add(ObjectType.Quantity.BloodGlucose)
                     if (permission.write) writePermissions.add(ObjectType.Quantity.BloodGlucose)
@@ -467,6 +487,10 @@ actual class KHealth {
                 is KHPermission.CyclingSpeed -> {
                     if (permission.read) readPermissions.add(ObjectType.Quantity.CyclingSpeed)
                     if (permission.write) writePermissions.add(ObjectType.Quantity.CyclingSpeed)
+                }
+
+                is KHPermission.DateOfBirth -> {
+                    if (permission.read) readPermissions.add(ObjectType.Characteristic.DateOfBirth)
                 }
 
                 is KHPermission.Distance -> {
@@ -2068,6 +2092,69 @@ actual class KHealth {
             logError(throwable = t, methodName = "readRecords")
             emptyList()
         }
+    }
+
+    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class, BetaInteropApi::class)
+    actual suspend fun readCharacteristic(request: KHCharacteristicType): KHCharacteristicRecord? {
+        when (request) {
+            KHCharacteristicType.DateOfBirth -> {
+                memScoped {
+                    val errorPtr: ObjCObjectVar<NSError?> = alloc<ObjCObjectVar<NSError?>>()
+                    val result = store.dateOfBirthComponentsWithError(errorPtr.ptr)
+                    val error = errorPtr.value
+
+                    if (error != null) {
+                        println("HealthKit error: ${error.localizedDescription}")
+                        return null
+                    }
+                    if (result == null) {
+                        println("HealthKit error: dateOfBirthComponents is null")
+                        return null
+                    }
+
+                    val calendar = NSCalendar.currentCalendar
+                    val date = calendar.dateFromComponents(result) ?: return null
+
+                    return KHCharacteristicRecord.DateOfBirth(
+                        dateOfBirth = date.toKotlinInstant()
+                    )
+                }
+            }
+
+            KHCharacteristicType.BiologicalSex -> {
+                memScoped {
+                    val errorPtr: ObjCObjectVar<NSError?> = alloc<ObjCObjectVar<NSError?>>()
+                    val result = store.biologicalSexWithError(errorPtr.ptr)
+                    val error = errorPtr.value
+
+                    if (error != null) {
+                        println("HealthKit error: ${error.localizedDescription}")
+                        return null
+                    }
+                    if (result == null) {
+                        println("HealthKit error: biological sex is null")
+                        return null
+                    }
+
+                    when (result.biologicalSex) {
+                        HKBiologicalSexNotSet -> return null
+                        HKBiologicalSexFemale -> return KHCharacteristicRecord.BiologicalSex(
+                            KHBiologicalSex.Female
+                        )
+
+                        HKBiologicalSexMale -> return KHCharacteristicRecord.BiologicalSex(
+                            KHBiologicalSex.Male
+                        )
+
+                        HKBiologicalSexOther -> return KHCharacteristicRecord.BiologicalSex(
+                            KHBiologicalSex.Other
+                        )
+                    }
+
+                }
+            }
+        }
+        return null
     }
 
     @OptIn(UnsafeNumber::class)

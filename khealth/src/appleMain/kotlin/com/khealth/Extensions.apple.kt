@@ -42,6 +42,8 @@ import platform.HealthKit.HKCategoryValueSleepAnalysisAsleepDeep
 import platform.HealthKit.HKCategoryValueSleepAnalysisAsleepREM
 import platform.HealthKit.HKCategoryValueSleepAnalysisAsleepUnspecified
 import platform.HealthKit.HKCategoryValueSleepAnalysisAwake
+import platform.HealthKit.HKCharacteristicTypeIdentifierBiologicalSex
+import platform.HealthKit.HKCharacteristicTypeIdentifierDateOfBirth
 import platform.HealthKit.HKMetricPrefixDeci
 import platform.HealthKit.HKMetricPrefixKilo
 import platform.HealthKit.HKMetricPrefixMilli
@@ -750,6 +752,14 @@ internal object ObjectType {
 
         val SleepSession =
             HKObjectType.categoryTypeForIdentifier(HKCategoryTypeIdentifierSleepAnalysis)!!
+    }
+
+    object Characteristic {
+        val BiologicalSex =
+            HKObjectType.characteristicTypeForIdentifier(HKCharacteristicTypeIdentifierBiologicalSex)!!
+
+        val DateOfBirth =
+            HKObjectType.characteristicTypeForIdentifier(HKCharacteristicTypeIdentifierDateOfBirth)!!
     }
 
     object Food {

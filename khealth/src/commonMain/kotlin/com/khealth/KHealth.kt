@@ -162,4 +162,6 @@ expect class KHealth {
      * @return The data records filtered on the basis of the input [KHReadRequest]
      */
     suspend fun readRecords(request: KHReadRequest): List<KHRecord>
+
+    suspend fun readCharacteristic(request: KHCharacteristicType): KHCharacteristicRecord?
 }

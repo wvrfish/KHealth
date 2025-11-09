@@ -446,6 +446,7 @@ internal fun KHPermission.toPermissions(): Set<Pair<String, KHPermissionType>> {
             val isReadGranted = when (entry) {
                 is KHPermission.ActiveCaloriesBurned -> entry.read
                 is KHPermission.BasalMetabolicRate -> entry.read
+                is KHPermission.BiologicalSex -> false //not available in android
                 is KHPermission.BloodGlucose -> entry.read
                 is KHPermission.BloodPressure -> entry.readSystolic || entry.readDiastolic
                 is KHPermission.BodyFat -> entry.read
@@ -455,6 +456,7 @@ internal fun KHPermission.toPermissions(): Set<Pair<String, KHPermissionType>> {
                 is KHPermission.CervicalMucus -> entry.read
                 is KHPermission.CyclingPedalingCadence -> entry.read
                 is KHPermission.CyclingSpeed -> entry.read
+                is KHPermission.DateOfBirth -> false //not available in android
                 is KHPermission.Distance -> entry.read
                 is KHPermission.ElevationGained -> entry.read
                 is KHPermission.Exercise -> entry.read
@@ -524,6 +526,7 @@ internal fun KHPermission.toPermissions(): Set<Pair<String, KHPermissionType>> {
             val isWriteGranted = when (entry) {
                 is KHPermission.ActiveCaloriesBurned -> entry.write
                 is KHPermission.BasalMetabolicRate -> entry.write
+                is KHPermission.BiologicalSex -> false
                 is KHPermission.BloodGlucose -> entry.write
                 is KHPermission.BloodPressure -> entry.writeSystolic || entry.writeDiastolic
                 is KHPermission.BodyFat -> entry.write
@@ -533,6 +536,7 @@ internal fun KHPermission.toPermissions(): Set<Pair<String, KHPermissionType>> {
                 is KHPermission.CervicalMucus -> entry.write
                 is KHPermission.CyclingPedalingCadence -> entry.write
                 is KHPermission.CyclingSpeed -> entry.write
+                is KHPermission.DateOfBirth -> false
                 is KHPermission.Distance -> entry.write
                 is KHPermission.ElevationGained -> entry.write
                 is KHPermission.Exercise -> entry.write
@@ -631,6 +635,9 @@ internal fun Array<out KHPermission>.toPermissionsWithStatuses(
         is KHPermission.BasalMetabolicRate ->
             KHPermission.BasalMetabolicRate(read = readGranted, write = writeGranted)
 
+        is KHPermission.BiologicalSex ->
+            KHPermission.BiologicalSex(false)
+
         is KHPermission.BloodGlucose ->
             KHPermission.BloodGlucose(read = readGranted, write = writeGranted)
 
@@ -661,6 +668,9 @@ internal fun Array<out KHPermission>.toPermissionsWithStatuses(
 
         is KHPermission.CyclingSpeed ->
             KHPermission.CyclingSpeed(read = readGranted, write = writeGranted)
+
+        is KHPermission.DateOfBirth ->
+            KHPermission.DateOfBirth(false)
 
         is KHPermission.Distance ->
             KHPermission.Distance(read = readGranted, write = writeGranted)
@@ -861,6 +871,7 @@ internal fun KHReadRequest.toRecordClass(): KClass<out Record>? = when (this) {
 internal fun KHPermission.toRecordClass(): KClass<out Record>? = when (this) {
     is KHPermission.ActiveCaloriesBurned -> ActiveCaloriesBurnedRecord::class
     is KHPermission.BasalMetabolicRate -> BasalMetabolicRateRecord::class
+    is KHPermission.BiologicalSex -> null
     is KHPermission.BloodGlucose -> BloodGlucoseRecord::class
     is KHPermission.BloodPressure -> BloodPressureRecord::class
     is KHPermission.BodyFat -> BodyFatRecord::class
@@ -870,6 +881,7 @@ internal fun KHPermission.toRecordClass(): KClass<out Record>? = when (this) {
     is KHPermission.CervicalMucus -> CervicalMucusRecord::class
     is KHPermission.CyclingPedalingCadence -> CyclingPedalingCadenceRecord::class
     is KHPermission.CyclingSpeed -> null
+    is KHPermission.DateOfBirth -> null
     is KHPermission.Distance -> DistanceRecord::class
     is KHPermission.ElevationGained -> ElevationGainedRecord::class
     is KHPermission.Exercise -> ExerciseSessionRecord::class

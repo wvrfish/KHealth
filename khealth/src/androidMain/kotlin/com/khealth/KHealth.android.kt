@@ -147,6 +147,12 @@ actual class KHealth {
             emptyList()
         }
     }
+
+    actual suspend fun readCharacteristic(request: KHCharacteristicType): KHCharacteristicRecord? {
+        return null // Health Connect does not support characteristic data
+    }
+
+
 }
 
 internal enum class KHPermissionType { Read, Write }
