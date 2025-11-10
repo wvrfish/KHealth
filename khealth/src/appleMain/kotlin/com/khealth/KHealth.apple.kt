@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.toKotlinInstant
 import kotlinx.datetime.toNSDate
 import platform.Foundation.NSCalendar
+import platform.Foundation.NSDateComponents
 import platform.Foundation.NSError
 import platform.Foundation.NSSortDescriptor
 import platform.HealthKit.HKAuthorizationStatusSharingAuthorized
@@ -46,12 +47,18 @@ import platform.HealthKit.HKObjectQueryNoLimit
 import platform.HealthKit.HKObjectType
 import platform.HealthKit.HKQuantity
 import platform.HealthKit.HKQuantitySample
+import platform.HealthKit.HKQuantityType
+import platform.HealthKit.HKQuantityTypeIdentifierActiveEnergyBurned
+import platform.HealthKit.HKQuantityTypeIdentifierStepCount
 import platform.HealthKit.HKQuery
 import platform.HealthKit.HKQueryOptionStrictStartDate
 import platform.HealthKit.HKSample
 import platform.HealthKit.HKSampleQuery
 import platform.HealthKit.HKSampleSortIdentifierStartDate
 import platform.HealthKit.HKSampleType
+import platform.HealthKit.HKStatistics
+import platform.HealthKit.HKStatisticsCollectionQuery
+import platform.HealthKit.HKStatisticsOptionCumulativeSum
 import platform.HealthKit.HKWorkout
 import platform.HealthKit.predicateForSamplesWithStartDate
 import platform.darwin.NSInteger
@@ -1500,6 +1507,26 @@ actual class KHealth {
         }
     }
 
+    actual suspend fun aggregatedDailyReadRecords(request: KHReadRequest): List<KHRecord> {
+
+        return try {
+            return when (request) {
+                is KHReadRequest.StepCount -> {
+                    request.statisticCollection()
+                }
+                is KHReadRequest.ActiveCaloriesBurned -> {
+                    request.statisticCollection()
+                }
+                else ->
+                    emptyList()
+            }
+        } catch (t: Throwable) {
+            logError(throwable = t, methodName = "readRecords")
+            emptyList()
+        }
+    }
+
+
     @OptIn(UnsafeNumber::class)
     actual suspend fun readRecords(request: KHReadRequest): List<KHRecord> {
         return try {
@@ -2155,6 +2182,94 @@ actual class KHealth {
             }
         }
         return null
+    }
+
+    @OptIn(UnsafeNumber::class)
+    private suspend fun KHReadRequest.statisticCollection(): List<KHRecord> {
+
+        val predicate = HKQuery.predicateForSamplesWithStartDate(
+            startDate = this.startDateTime.toNSDate(),
+            endDate = this.endDateTime.toNSDate(),
+            options = HKQueryOptionStrictStartDate
+        )
+
+        val qtyType: HKQuantityType?
+
+        when (this) {
+            is KHReadRequest.StepCount -> {
+                // Use statistics collection query
+                qtyType =
+                    HKQuantityType.quantityTypeForIdentifier(HKQuantityTypeIdentifierStepCount)
+            }
+            is KHReadRequest.ActiveCaloriesBurned -> {
+                // Use statistics collection query
+                qtyType =
+                    HKQuantityType.quantityTypeForIdentifier(
+                        HKQuantityTypeIdentifierActiveEnergyBurned
+                    )
+            }
+            else -> {
+                qtyType = null
+            }
+        }
+
+        if (qtyType == null) {
+            return emptyList()
+        }
+
+        println("Using HKStatisticsCollectionQuery for $qtyType")
+
+        val query = HKStatisticsCollectionQuery(
+            quantityType = qtyType,
+            quantitySamplePredicate = predicate,
+            options = HKStatisticsOptionCumulativeSum,
+            anchorDate = this.startDateTime.toNSDate(),
+            intervalComponents = NSDateComponents().apply { day = 1 }
+        )
+
+        return suspendCoroutine { continuation ->
+            query.initialResultsHandler =
+                { _, statisticsCollection, error ->
+                    error.logToConsole(qtyType)
+                    println("Using results callback for $statisticsCollection")
+
+                    val records : List<KHRecord> = statisticsCollection?.statistics()
+                        ?.filterIsInstance<HKStatistics>()?.mapNotNull { statistics ->
+                            println("Got stats list $statistics")
+
+                            val sumQuantity = statistics.sumQuantity() ?: return@mapNotNull null
+                            println("Got sumQuantity list $sumQuantity")
+
+                            when (this) {
+                                is KHReadRequest.StepCount -> {
+                                    println("creating step count record")
+                                    KHRecord.StepCount(
+                                        count = sumQuantity.doubleValueForUnit(AppleUnits.count)
+                                            .toLong(),
+                                        startTime = statistics.startDate.toKotlinInstant(),
+                                        endTime = statistics.endDate.toKotlinInstant(),
+                                    )
+                                }
+
+                                is KHReadRequest.ActiveCaloriesBurned -> {
+                                    println("creating calorie count record")
+                                    KHRecord.ActiveCaloriesBurned(
+                                        unit = this.unit,
+                                        value = sumQuantity toDoubleValueFor this.unit,// sumQuantity.doubleValueForUnit(AppleUnits.kilocalorie),
+                                        startTime = statistics.startDate.toKotlinInstant(),
+                                        endTime = statistics.endDate.toKotlinInstant(),
+                                    )
+                                }
+                                else -> null
+                            }
+                        } ?: emptyList()
+                    println("records: $records")
+
+                    continuation.resume(records)
+                }
+            store.executeQuery(query)
+        }
+
     }
 
     @OptIn(UnsafeNumber::class)

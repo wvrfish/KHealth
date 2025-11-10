@@ -18,6 +18,8 @@
 package com.khealth
 
 import android.annotation.SuppressLint
+import androidx.health.connect.client.aggregate.AggregateMetric
+import androidx.health.connect.client.aggregate.AggregationResultGroupedByPeriod
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.records.BasalMetabolicRateRecord
@@ -87,6 +89,9 @@ import androidx.health.connect.client.units.ounces
 import androidx.health.connect.client.units.percent
 import androidx.health.connect.client.units.pounds
 import androidx.health.connect.client.units.watts
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toKotlinLocalDateTime
 import kotlin.reflect.KClass
 import kotlin.time.ExperimentalTime
 import kotlin.time.toJavaInstant
@@ -908,6 +913,51 @@ internal fun KHPermission.toRecordClass(): KClass<out Record>? = when (this) {
     is KHPermission.Vo2Max -> Vo2MaxRecord::class
     is KHPermission.Weight -> WeightRecord::class
     is KHPermission.WheelChairPushes -> WheelchairPushesRecord::class
+}
+
+internal fun KHReadRequest.toAggregateMetric(): AggregateMetric<*> {
+    return when (this) {
+        is KHReadRequest.ActiveCaloriesBurned -> ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL
+        is KHReadRequest.StepCount -> StepsRecord.COUNT_TOTAL
+        else -> throw Exception("Aggregations not supported for this record type!")
+    }
+}
+
+internal fun AggregationResultGroupedByPeriod.toKHRecord(request: KHReadRequest): KHRecord? {
+    return when (request) {
+        is KHReadRequest.ActiveCaloriesBurned -> {
+            val r = result[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]
+            if (r == null) {
+                null
+            } else {
+                KHRecord.ActiveCaloriesBurned(
+                    unit = request.unit,
+                    value = r.toDoubleValueFor(request.unit),
+                    startTime = this.startTime.toKotlinLocalDateTime()
+                        .toInstant(TimeZone.currentSystemDefault()),
+                    endTime = this.endTime.toKotlinLocalDateTime()
+                        .toInstant(TimeZone.currentSystemDefault())
+                )
+            }
+        }
+
+        is KHReadRequest.StepCount -> {
+            val r = result[StepsRecord.COUNT_TOTAL]
+            if (r == null) {
+                null
+            } else {
+                KHRecord.StepCount(
+                    count = r,
+                    startTime = this.startTime.toKotlinLocalDateTime()
+                        .toInstant(TimeZone.currentSystemDefault()),
+                    endTime = this.endTime.toKotlinLocalDateTime()
+                        .toInstant(TimeZone.currentSystemDefault())
+                )
+            }
+        }
+
+        else -> throw Exception("Aggregations not supported for this record type!")
+    }
 }
 
 @SuppressLint("RestrictedApi")

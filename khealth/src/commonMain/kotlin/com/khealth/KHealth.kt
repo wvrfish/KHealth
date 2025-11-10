@@ -164,4 +164,7 @@ expect class KHealth {
     suspend fun readRecords(request: KHReadRequest): List<KHRecord>
 
     suspend fun readCharacteristic(request: KHCharacteristicType): KHCharacteristicRecord?
+
+    suspend fun aggregatedDailyReadRecords(request: KHReadRequest): List<KHRecord>
+
 }

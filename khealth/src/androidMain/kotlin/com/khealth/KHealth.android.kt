@@ -19,6 +19,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
+import androidx.health.connect.client.request.AggregateGroupByPeriodRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import kotlinx.coroutines.CoroutineScope
@@ -26,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import java.time.Period
 import kotlin.time.toJavaInstant
 
 actual class KHealth {
@@ -144,6 +146,30 @@ actual class KHealth {
             hcRecords.mapNotNull { record -> record.toKHRecordOrNull(request) }
         } catch (t: Throwable) {
             logError(throwable = t, methodName = "readRecords")
+            emptyList()
+        }
+    }
+
+    actual suspend fun aggregatedDailyReadRecords(request: KHReadRequest): List<KHRecord> {
+        // Health Connect does not support aggregation yet, so we return raw records
+        return try {
+            val metric = request.toAggregateMetric()
+            val aggregated = client.aggregateGroupByPeriod(
+                AggregateGroupByPeriodRequest(
+                    metrics = setOf(
+                        metric
+                    ),
+                    timeRangeFilter = TimeRangeFilter.between(
+                        startTime = request.startDateTime.toJavaInstant(),
+                        endTime = request.endDateTime.toJavaInstant()
+                    ),
+                    timeRangeSlicer = Period.ofDays(1)
+                )
+            )
+
+            return aggregated.mapNotNull { entry -> entry.toKHRecord(request) }
+        } catch (t: Throwable) {
+            logError(throwable = t, methodName = "aggregatedDailyReadRecords")
             emptyList()
         }
     }
