@@ -2231,18 +2231,18 @@ actual class KHealth {
             query.initialResultsHandler =
                 { _, statisticsCollection, error ->
                     error.logToConsole(qtyType)
-                    println("Using results callback for $statisticsCollection")
+//                    println("Using results callback for $statisticsCollection")
 
                     val records : List<KHRecord> = statisticsCollection?.statistics()
                         ?.filterIsInstance<HKStatistics>()?.mapNotNull { statistics ->
-                            println("Got stats list $statistics")
+//                            println("Got stats list $statistics")
 
                             val sumQuantity = statistics.sumQuantity() ?: return@mapNotNull null
-                            println("Got sumQuantity list $sumQuantity")
+//                            println("Got sumQuantity list $sumQuantity")
 
                             when (this) {
                                 is KHReadRequest.StepCount -> {
-                                    println("creating step count record")
+//                                    println("creating step count record")
                                     KHRecord.StepCount(
                                         count = sumQuantity.doubleValueForUnit(AppleUnits.count)
                                             .toLong(),
@@ -2252,7 +2252,7 @@ actual class KHealth {
                                 }
 
                                 is KHReadRequest.ActiveCaloriesBurned -> {
-                                    println("creating calorie count record")
+//                                    println("creating calorie count record")
                                     KHRecord.ActiveCaloriesBurned(
                                         unit = this.unit,
                                         value = sumQuantity toDoubleValueFor this.unit,// sumQuantity.doubleValueForUnit(AppleUnits.kilocalorie),
@@ -2263,7 +2263,7 @@ actual class KHealth {
                                 else -> null
                             }
                         } ?: emptyList()
-                    println("records: $records")
+//                    println("records: $records")
 
                     continuation.resume(records)
                 }

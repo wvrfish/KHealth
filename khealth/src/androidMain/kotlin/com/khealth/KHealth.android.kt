@@ -27,6 +27,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toLocalDateTime
 import java.time.Period
 import kotlin.time.toJavaInstant
 
@@ -160,8 +163,10 @@ actual class KHealth {
                         metric
                     ),
                     timeRangeFilter = TimeRangeFilter.between(
-                        startTime = request.startDateTime.toJavaInstant(),
-                        endTime = request.endDateTime.toJavaInstant()
+                        startTime = request.startDateTime.toLocalDateTime(TimeZone.currentSystemDefault())
+                            .toJavaLocalDateTime(),
+                        endTime = request.endDateTime.toLocalDateTime(TimeZone.currentSystemDefault())
+                            .toJavaLocalDateTime()
                     ),
                     timeRangeSlicer = Period.ofDays(1)
                 )
