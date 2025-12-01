@@ -25,3 +25,11 @@ import kotlin.time.Instant
  * @param beatsPerMinute Heart beats per minute. Validation range: 1-300.
  */
 data class KHHeartRateSample(val beatsPerMinute: Long, val time: Instant)
+
+data class KHHeartRateRangeSample(
+    val minBeatsPerMinute: Double,
+    val maxBeatsPerMinute: Double,
+    val averageBeatsPerMinute: Double,
+    val startTime: Instant,
+    val endTime: Instant
+)

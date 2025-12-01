@@ -165,6 +165,8 @@ expect class KHealth {
 
     suspend fun readCharacteristic(request: KHCharacteristicType): KHCharacteristicRecord?
 
+    suspend fun readWorkoutRecords(request: KHReadRequest.ExerciseFull): List<KHRecord.ExerciseFull>
+
     suspend fun aggregatedDailyReadRecords(request: KHReadRequest): List<KHRecord>
 
 }

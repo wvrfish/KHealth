@@ -10,33 +10,11 @@
 		058557BB273AAA24004C7B11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 058557BA273AAA24004C7B11 /* Assets.xcassets */; };
 		058557D9273AAEEB004C7B11 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 058557D8273AAEEB004C7B11 /* Preview Assets.xcassets */; };
 		2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2152FB032600AC8F00CF470E /* iOSApp.swift */; };
-		506B950F2CDC75B0005E668E /* KHealth.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 506B95012CDC75AF005E668E /* KHealth.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		50D155E72CDD0DA600F90026 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 50D155E62CDD0DA600F90026 /* LaunchScreen.storyboard */; };
 		7555FF83242A565900829871 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* ContentView.swift */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		506B950C2CDC75B0005E668E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 7555FF73242A565900829871 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 506B95002CDC75AF005E668E;
-			remoteInfo = "sampleWatchOSApp Watch App";
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXCopyFilesBuildPhase section */
-		506B950E2CDC75B0005E668E /* Embed Watch Content */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
-			dstSubfolderSpec = 16;
-			files = (
-				506B950F2CDC75B0005E668E /* KHealth.app in Embed Watch Content */,
-			);
-			name = "Embed Watch Content";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		7555FFB4242A642300829871 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -166,12 +144,10 @@
 				7555FF78242A565900829871 /* Frameworks */,
 				7555FF79242A565900829871 /* Resources */,
 				7555FFB4242A642300829871 /* Embed Frameworks */,
-				506B950E2CDC75B0005E668E /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				506B950D2CDC75B0005E668E /* PBXTargetDependency */,
 			);
 			name = ios;
 			productName = sampleIOSApp;
@@ -290,14 +266,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		506B950D2CDC75B0005E668E /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 506B95002CDC75AF005E668E /* watchos */;
-			targetProxy = 506B950C2CDC75B0005E668E /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		506B95102CDC75B0005E668E /* Debug */ = {
@@ -505,7 +473,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ios/Preview Content\"";
-				DEVELOPMENT_TEAM = 6NKFZTB3JJ;
+				DEVELOPMENT_TEAM = KMWX4UY2WJ;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -541,7 +509,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ios/Preview Content\"";
-				DEVELOPMENT_TEAM = 6NKFZTB3JJ;
+				DEVELOPMENT_TEAM = KMWX4UY2WJ;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",

@@ -209,6 +209,13 @@ sealed class KHReadRequest(internal val startDateTime: Instant, internal val end
         val endTime: Instant,
     ) : KHReadRequest(startDateTime = startTime, endDateTime = endTime)
 
+    data class ExerciseFull(
+        val startTime: Instant,
+        val endTime: Instant,
+        val targetHeartRateSamples: Int,
+        val minimumSliceSecs: Double = 1.0
+    ) : KHReadRequest(startDateTime = startTime, endDateTime = endTime)
+
     /**
      * Depicts that the app wants to read records of type [KHRecord.FloorsClimbed] from the
      * health store.

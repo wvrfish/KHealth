@@ -31,6 +31,7 @@ import platform.Foundation.NSCalendar
 import platform.Foundation.NSDateComponents
 import platform.Foundation.NSError
 import platform.Foundation.NSSortDescriptor
+import platform.Foundation.timeIntervalSinceDate
 import platform.HealthKit.HKAuthorizationStatusSharingAuthorized
 import platform.HealthKit.HKBiologicalSexFemale
 import platform.HealthKit.HKBiologicalSexMale
@@ -49,8 +50,10 @@ import platform.HealthKit.HKQuantity
 import platform.HealthKit.HKQuantitySample
 import platform.HealthKit.HKQuantityType
 import platform.HealthKit.HKQuantityTypeIdentifierActiveEnergyBurned
+import platform.HealthKit.HKQuantityTypeIdentifierHeartRate
 import platform.HealthKit.HKQuantityTypeIdentifierStepCount
 import platform.HealthKit.HKQuery
+import platform.HealthKit.HKQueryOptionStrictEndDate
 import platform.HealthKit.HKQueryOptionStrictStartDate
 import platform.HealthKit.HKSample
 import platform.HealthKit.HKSampleQuery
@@ -59,12 +62,17 @@ import platform.HealthKit.HKSampleType
 import platform.HealthKit.HKStatistics
 import platform.HealthKit.HKStatisticsCollectionQuery
 import platform.HealthKit.HKStatisticsOptionCumulativeSum
+import platform.HealthKit.HKStatisticsOptionDiscreteAverage
+import platform.HealthKit.HKStatisticsOptionDiscreteMax
+import platform.HealthKit.HKStatisticsOptionDiscreteMin
 import platform.HealthKit.HKWorkout
 import platform.HealthKit.predicateForSamplesWithStartDate
 import platform.darwin.NSInteger
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
+import kotlin.math.floor
+import kotlin.math.max
 
 actual class KHealth {
     constructor() {
@@ -832,6 +840,8 @@ actual class KHealth {
                             )
                         }
 
+                    is KHRecord.ExerciseFull -> Unit
+
                     is KHRecord.FloorsClimbed -> samples.add(
                         HKQuantitySample.quantitySampleWithType(
                             quantityType = ObjectType.Quantity.FloorsClimbed,
@@ -1514,9 +1524,11 @@ actual class KHealth {
                 is KHReadRequest.StepCount -> {
                     request.statisticCollection()
                 }
+
                 is KHReadRequest.ActiveCaloriesBurned -> {
                     request.statisticCollection()
                 }
+
                 else ->
                     emptyList()
             }
@@ -1526,6 +1538,143 @@ actual class KHealth {
         }
     }
 
+    @OptIn(UnsafeNumber::class)
+    actual suspend fun readWorkoutRecords(request: KHReadRequest.ExerciseFull): List<KHRecord.ExerciseFull> {
+        val predicate = HKQuery.predicateForSamplesWithStartDate(
+            startDate = request.startDateTime.toNSDate(),
+            endDate = request.endDateTime.toNSDate(),
+            options = HKQueryOptionStrictStartDate
+        )
+        val workouts = suspendCoroutine { continuation ->
+            store.executeQuery(
+                HKSampleQuery(
+                    sampleType = HKObjectType.workoutType(),
+                    predicate = predicate,
+                    limit = HKObjectQueryNoLimit,
+                    sortDescriptors = listOf(
+                        NSSortDescriptor.sortDescriptorWithKey(
+                            key = HKSampleSortIdentifierStartDate,
+                            ascending = false
+                        )
+                    )
+                ) { _, data, error ->
+
+                    continuation.resume(
+                        data?.filterIsInstance<HKWorkout>()
+                    )
+                }
+            )
+        }
+        if (workouts.isNullOrEmpty()) {
+            return emptyList()
+        } else {
+
+            val result = mutableListOf<KHRecord.ExerciseFull>()
+
+            for (workout in workouts) {
+                val calories = workout.totalEnergyBurned?.doubleValueForUnit(AppleUnits.kilocalorie)
+                val distance = workout.totalDistance?.doubleValueForUnit(AppleUnits.meter)
+                val hrType =
+                    HKQuantityType.quantityTypeForIdentifier(HKQuantityTypeIdentifierHeartRate)
+                var hr: Double? = null
+                if (hrType != null) {
+                    hr = workout.statisticsForType(hrType)?.averageQuantity()?.doubleValueForUnit(
+                        AppleUnits.beatsPerMinute
+                    )
+                }
+
+                val samples = readHeartRateSamples(workout, request)?.ifEmpty { null }
+                val type = workout.workoutActivityType.toKHExerciseTypeOrNull() ?: continue
+
+                val record = KHRecord.ExerciseFull(
+                    type = type,
+                    startTime = workout.startDate.toKotlinInstant(),
+                    endTime = workout.endDate.toKotlinInstant(),
+                    activeCaloriedBurned = calories,
+                    distanceCovered = distance,
+                    averageHeartRate = hr,
+                    heartRateSamples = samples,
+                )
+                result.add(record)
+
+            }
+
+            return result
+        }
+
+    }
+
+    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+    private suspend fun readHeartRateSamples(
+        workout: HKWorkout,
+        request: KHReadRequest.ExerciseFull
+    ): List<KHHeartRateRangeSample>? {
+        val hrType = HKQuantityType.quantityTypeForIdentifier(HKQuantityTypeIdentifierHeartRate)
+            ?: return null
+
+        val predicate = HKQuery.predicateForSamplesWithStartDate(
+            startDate = workout.startDate,
+            endDate = workout.endDate,
+            options = HKQueryOptionStrictStartDate or HKQueryOptionStrictEndDate
+        )
+        val workoutDuration = workout.endDate.timeIntervalSinceDate(workout.startDate)
+        val targetSamples = request.targetHeartRateSamples.toDouble()
+        val intervals =
+            max(request.minimumSliceSecs, floor(workoutDuration / targetSamples)).toInt()
+        val intervalComponent = NSDateComponents()
+        intervalComponent.setSecond(intervals.toLong())
+//
+//        val sortDescriptor = NSSortDescriptor.sortDescriptorWithKey(
+//            key = HKSampleSortIdentifierStartDate,
+//            ascending = true
+//        )
+        val options =
+            HKStatisticsOptionDiscreteMin or HKStatisticsOptionDiscreteMax or HKStatisticsOptionDiscreteAverage
+        val query = HKStatisticsCollectionQuery(
+            quantityType = hrType,
+            quantitySamplePredicate = predicate,
+            options = options,
+            anchorDate = workout.startDate,
+            intervalComponent
+        )
+
+        return suspendCoroutine { continuation ->
+            query.initialResultsHandler = { _, results, error ->
+
+                val records = mutableListOf<KHHeartRateRangeSample>()
+
+                results?.enumerateStatisticsFromDate(
+                    workout.startDate,
+                    workout.endDate
+                ) { statistics, _ ->
+                    if (statistics != null) {
+                        val min = statistics.minimumQuantity()
+                            ?.doubleValueForUnit(AppleUnits.beatsPerMinute)
+                        val max = statistics.maximumQuantity()
+                            ?.doubleValueForUnit(AppleUnits.beatsPerMinute)
+                        val avg = statistics.averageQuantity()
+                            ?.doubleValueForUnit(AppleUnits.beatsPerMinute)
+
+                        if (min != null && max != null && avg != null) {
+                            records.add(
+                                KHHeartRateRangeSample(
+                                    startTime = statistics.startDate.toKotlinInstant(),
+                                    endTime = statistics.endDate.toKotlinInstant(),
+                                    minBeatsPerMinute = min,
+                                    maxBeatsPerMinute = max,
+                                    averageBeatsPerMinute = avg,
+                                )
+                            )
+                        }
+                    }
+
+                }
+
+                continuation.resume(records)
+            }
+            store.executeQuery(query)
+        }
+    }
 
     @OptIn(UnsafeNumber::class)
     actual suspend fun readRecords(request: KHReadRequest): List<KHRecord> {
@@ -1573,6 +1722,7 @@ actual class KHealth {
                         is KHReadRequest.ElevationGained -> Unit
 
                         is KHReadRequest.Exercise -> addAll(quantitySamplesFor(ObjectType.Exercise))
+                        is KHReadRequest.ExerciseFull -> Unit
 
                         is KHReadRequest.FloorsClimbed ->
                             addAll(quantitySamplesFor(ObjectType.Quantity.FloorsClimbed))
@@ -1780,14 +1930,17 @@ actual class KHealth {
 
                     is KHReadRequest.Exercise -> {
                         val sample = hkSamples.first() as HKWorkout
-                        sample.workoutActivityType.toKHExerciseTypeOrNull()?.let { exerciseType ->
-                            KHRecord.Exercise(
-                                startTime = sample.startDate.toKotlinInstant(),
-                                endTime = sample.endDate.toKotlinInstant(),
-                                type = exerciseType,
-                            )
-                        }
+                        sample.workoutActivityType.toKHExerciseTypeOrNull()
+                            ?.let { exerciseType ->
+                                KHRecord.Exercise(
+                                    startTime = sample.startDate.toKotlinInstant(),
+                                    endTime = sample.endDate.toKotlinInstant(),
+                                    type = exerciseType,
+                                )
+                            }
                     }
+
+                    is KHReadRequest.ExerciseFull -> null
 
                     is KHReadRequest.FloorsClimbed -> {
                         val sample = hkSamples.first() as HKQuantitySample
@@ -2201,6 +2354,7 @@ actual class KHealth {
                 qtyType =
                     HKQuantityType.quantityTypeForIdentifier(HKQuantityTypeIdentifierStepCount)
             }
+
             is KHReadRequest.ActiveCaloriesBurned -> {
                 // Use statistics collection query
                 qtyType =
@@ -2208,6 +2362,7 @@ actual class KHealth {
                         HKQuantityTypeIdentifierActiveEnergyBurned
                     )
             }
+
             else -> {
                 qtyType = null
             }
@@ -2233,7 +2388,7 @@ actual class KHealth {
                     error.logToConsole(qtyType)
 //                    println("Using results callback for $statisticsCollection")
 
-                    val records : List<KHRecord> = statisticsCollection?.statistics()
+                    val records: List<KHRecord> = statisticsCollection?.statistics()
                         ?.filterIsInstance<HKStatistics>()?.mapNotNull { statistics ->
 //                            println("Got stats list $statistics")
 
@@ -2260,6 +2415,7 @@ actual class KHealth {
                                         endTime = statistics.endDate.toKotlinInstant(),
                                     )
                                 }
+
                                 else -> null
                             }
                         } ?: emptyList()
@@ -2300,7 +2456,8 @@ actual class KHealth {
                     ) { _, data, error ->
                         error.logToConsole(type)
                         continuation.resume(
-                            data?.filterIsInstance<HKSample>()?.filterNot { it is HKCategorySample }
+                            data?.filterIsInstance<HKSample>()
+                                ?.filterNot { it is HKCategorySample }
                         )
                     }
                 )

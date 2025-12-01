@@ -848,6 +848,7 @@ internal fun KHReadRequest.toRecordClass(): KClass<out Record>? = when (this) {
     is KHReadRequest.Distance -> DistanceRecord::class
     is KHReadRequest.ElevationGained -> ElevationGainedRecord::class
     is KHReadRequest.Exercise -> ExerciseSessionRecord::class
+    is KHReadRequest.ExerciseFull -> ExerciseSessionRecord::class
     is KHReadRequest.FloorsClimbed -> FloorsClimbedRecord::class
     is KHReadRequest.HeartRate -> HeartRateRecord::class
     is KHReadRequest.HeartRateVariability -> HeartRateVariabilityRmssdRecord::class
@@ -1079,6 +1080,8 @@ internal fun KHRecord.toHCRecord(): Record? {
                 exerciseType = exerciseType
             )
         }
+
+        is KHRecord.ExerciseFull -> null
 
         is KHRecord.FloorsClimbed -> FloorsClimbedRecord(
             startTime = startTime.toJavaInstant(),

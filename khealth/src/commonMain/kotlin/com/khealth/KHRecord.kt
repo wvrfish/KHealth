@@ -246,6 +246,16 @@ sealed class KHRecord {
         val endTime: Instant,
     ) : KHRecord()
 
+    data class ExerciseFull(
+        val type: KHExerciseType,
+        val startTime: Instant,
+        val endTime: Instant,
+        var activeCaloriedBurned: Double?,
+        var distanceCovered: Double?,
+        var averageHeartRate: Double?,
+        val heartRateSamples: List<KHHeartRateRangeSample>?
+    ) : KHRecord()
+
     /**
      * Captures the number of floors climbed by the user since the last reading.
      *

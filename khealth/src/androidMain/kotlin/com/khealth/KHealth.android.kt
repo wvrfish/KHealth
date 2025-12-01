@@ -19,7 +19,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
+import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
+import androidx.health.connect.client.records.DistanceRecord
+import androidx.health.connect.client.records.ExerciseSessionRecord
+import androidx.health.connect.client.records.HeartRateRecord
+import androidx.health.connect.client.request.AggregateGroupByDurationRequest
 import androidx.health.connect.client.request.AggregateGroupByPeriodRequest
+import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import kotlinx.coroutines.CoroutineScope
@@ -31,7 +37,13 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
 import java.time.Period
+import kotlin.math.floor
+import kotlin.math.max
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 import kotlin.time.toJavaInstant
+import kotlin.time.toKotlinInstant
 
 actual class KHealth {
     constructor(activity: ComponentActivity) {
@@ -149,6 +161,98 @@ actual class KHealth {
             hcRecords.mapNotNull { record -> record.toKHRecordOrNull(request) }
         } catch (t: Throwable) {
             logError(throwable = t, methodName = "readRecords")
+            emptyList()
+        }
+    }
+
+    actual suspend fun readWorkoutRecords(request: KHReadRequest.ExerciseFull): List<KHRecord.ExerciseFull> {
+        return try {
+            val hcRecords = client.readRecords(
+                request = ReadRecordsRequest(
+                    recordType = ExerciseSessionRecord::class,
+                    timeRangeFilter = TimeRangeFilter.between(
+                        startTime = request.startDateTime.toJavaInstant(),
+                        endTime = request.endDateTime.toJavaInstant()
+                    ),
+                )
+            ).records
+
+            val records = mutableListOf<KHRecord.ExerciseFull>()
+            for (record in hcRecords) {
+
+                val response = client.aggregate(
+                    AggregateRequest(
+                        metrics = setOf(
+                            ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL,
+                            DistanceRecord.DISTANCE_TOTAL,
+                            HeartRateRecord.BPM_AVG
+                        ),
+                        timeRangeFilter = TimeRangeFilter.between(
+                            record.startTime,
+                            record.endTime
+                        )
+                    )
+                )
+                val activeCals =
+                    response[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]?.inKilocalories
+                val distance = response[DistanceRecord.DISTANCE_TOTAL]?.inMeters
+                val avgHR = response[HeartRateRecord.BPM_AVG]
+
+                val duration: Duration =
+                    record.endTime.toKotlinInstant() - record.startTime.toKotlinInstant()
+                val secs = duration.inWholeMilliseconds.toDouble() / 1000
+                val slice =
+                    max(request.minimumSliceSecs, floor(secs / request.targetHeartRateSamples))
+                val aggHR: List<KHHeartRateRangeSample>? = client.aggregateGroupByDuration(
+                    AggregateGroupByDurationRequest(
+                        metrics = setOf(
+                            HeartRateRecord.BPM_AVG,
+                            HeartRateRecord.BPM_MAX,
+                            HeartRateRecord.BPM_MIN
+                        ),
+                        timeRangeFilter = TimeRangeFilter.between(
+                            startTime = record.startTime,
+                            endTime = record.endTime
+                        ),
+                        timeRangeSlicer = slice.seconds.toJavaDuration()
+                    )
+                ).mapNotNull {
+                    val max = it.result[HeartRateRecord.BPM_MAX]?.toDouble()
+                    val min = it.result[HeartRateRecord.BPM_MIN]?.toDouble()
+                    val avg = it.result[HeartRateRecord.BPM_AVG]?.toDouble()
+                    if (max != null && min != null && avg != null) {
+                        KHHeartRateRangeSample(
+                            startTime = it.startTime.toKotlinInstant(),
+                            endTime = it.endTime.toKotlinInstant(),
+                            maxBeatsPerMinute = max,
+                            minBeatsPerMinute = min,
+                            averageBeatsPerMinute = avg
+                        )
+                    } else {
+                        null
+                    }
+                }.ifEmpty { null }
+
+                val type = record.exerciseType.toKHExerciseTypeOrNull()
+                if (type != null) {
+                    records.add(
+                        KHRecord.ExerciseFull(
+                            type = type,
+                            startTime = record.startTime.toKotlinInstant(),
+                            endTime = record.endTime.toKotlinInstant(),
+                            activeCaloriedBurned = activeCals,
+                            distanceCovered = distance,
+                            averageHeartRate = avgHR?.toDouble(),
+                            heartRateSamples = aggHR
+                        )
+                    )
+                }
+
+
+            }
+            return records
+        } catch (t: Throwable) {
+            logError(throwable = t, methodName = "readWorkoutRecords")
             emptyList()
         }
     }
