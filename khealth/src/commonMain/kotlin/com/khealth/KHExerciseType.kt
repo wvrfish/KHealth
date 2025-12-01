@@ -15,6 +15,7 @@
 
 package com.khealth
 
+
 /**
  * Depicts the category of [KHRecord.Exercise] that the user is performing.
  */

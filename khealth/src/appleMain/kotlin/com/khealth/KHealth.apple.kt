@@ -1590,7 +1590,7 @@ actual class KHealth {
                     type = type,
                     startTime = workout.startDate.toKotlinInstant(),
                     endTime = workout.endDate.toKotlinInstant(),
-                    activeCaloriedBurned = calories,
+                    activeCaloriesBurned = calories,
                     distanceCovered = distance,
                     averageHeartRate = hr,
                     heartRateSamples = samples,

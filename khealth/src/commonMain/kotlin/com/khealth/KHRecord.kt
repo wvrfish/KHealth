@@ -250,7 +250,7 @@ sealed class KHRecord {
         val type: KHExerciseType,
         val startTime: Instant,
         val endTime: Instant,
-        var activeCaloriedBurned: Double?,
+        var activeCaloriesBurned: Double?,
         var distanceCovered: Double?,
         var averageHeartRate: Double?,
         val heartRateSamples: List<KHHeartRateRangeSample>?

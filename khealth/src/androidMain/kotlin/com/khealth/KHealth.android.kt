@@ -240,7 +240,7 @@ actual class KHealth {
                             type = type,
                             startTime = record.startTime.toKotlinInstant(),
                             endTime = record.endTime.toKotlinInstant(),
-                            activeCaloriedBurned = activeCals,
+                            activeCaloriesBurned = activeCals,
                             distanceCovered = distance,
                             averageHeartRate = avgHR?.toDouble(),
                             heartRateSamples = aggHR
