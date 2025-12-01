@@ -42,6 +42,7 @@ import com.khealth.KHealth
 import com.khealth.sample.sampleCheckAllPerms
 import com.khealth.sample.sampleReadData
 import com.khealth.sample.sampleRequestAllPerms
+import com.khealth.sample.sampleWorkoutData
 import com.khealth.sample.sampleWriteData
 
 class MainActivity : ComponentActivity() {
@@ -99,6 +100,9 @@ class MainActivity : ComponentActivity() {
                         }
                         Button(onClick = { sampleReadData(kHealth) }) {
                             Text("Read Data")
+                        }
+                        Button(onClick = { sampleWorkoutData(kHealth) }) {
+                            Text("Read Workout Data")
                         }
                     }
                 }

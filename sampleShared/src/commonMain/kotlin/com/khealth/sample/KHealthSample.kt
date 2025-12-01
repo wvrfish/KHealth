@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+@file:OptIn(ExperimentalTime::class)
+
 package com.khealth.sample
 
 import com.khealth.KHCervicalMucusAppearance
@@ -34,9 +36,10 @@ import com.khealth.KHUnit
 import com.khealth.KHealth
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.ExperimentalTime
 
 val permissions = arrayOf(
     KHPermission.ActiveCaloriesBurned(read = true, write = true),
@@ -361,6 +364,20 @@ fun sampleWriteData(kHealth: KHealth) {
             ),
         )
         println("Data insert response: $insertResponse")
+    }
+}
+
+fun sampleWorkoutData(kHealth: KHealth) {
+    coroutineScope.launch {
+
+        val workoutData = kHealth.readWorkoutRecords(KHReadRequest.ExerciseFull(
+            startTime = Clock.System.now().minus(7.days),
+            endTime = Clock.System.now(),
+            targetHeartRateSamples = 50
+        ))
+
+        println("Workout data: $workoutData")
+
     }
 }
 
