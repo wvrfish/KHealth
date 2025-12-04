@@ -396,8 +396,8 @@ internal fun Record.toKHRecordOrNull(request: KHReadRequest): KHRecord? = when (
                     SleepSessionRecord.STAGE_TYPE_UNKNOWN -> KHSleepStage.Unknown
                     else -> throw Exception("Unknown sleep stage!")
                 },
-                startTime = this.startTime.toKotlinInstant(),
-                endTime = this.endTime.toKotlinInstant(),
+                startTime = sample.startTime.toKotlinInstant(),
+                endTime = sample.endTime.toKotlinInstant(),
             )
         }
     )
