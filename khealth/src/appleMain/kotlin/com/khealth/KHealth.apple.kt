@@ -1740,13 +1740,13 @@ actual class KHealth {
                             addAll(quantitySamplesFor(ObjectType.Quantity.Hydration))
 
                         is KHReadRequest.IntermenstrualBleeding ->
-                            addAll(quantitySamplesFor(ObjectType.Category.IntermenstrualBleeding))
+                            addAll(categorySamplesFor(ObjectType.Category.IntermenstrualBleeding))
 
                         is KHReadRequest.LeanBodyMass ->
                             addAll(quantitySamplesFor(ObjectType.Quantity.LeanBodyMass))
 
                         is KHReadRequest.MenstruationFlow ->
-                            addAll(quantitySamplesFor(ObjectType.Category.MenstruationFlow))
+                            addAll(categorySamplesFor(ObjectType.Category.MenstruationFlow))
 
                         is KHReadRequest.MenstruationPeriod -> Unit
 
@@ -1794,7 +1794,7 @@ actual class KHealth {
                         )
 
                         is KHReadRequest.OvulationTest ->
-                            addAll(quantitySamplesFor(ObjectType.Category.OvulationTest))
+                            addAll(categorySamplesFor(ObjectType.Category.OvulationTest))
 
                         is KHReadRequest.OxygenSaturation ->
                             addAll(quantitySamplesFor(ObjectType.Quantity.OxygenSaturation))
@@ -1812,10 +1812,10 @@ actual class KHealth {
                             addAll(quantitySamplesFor(ObjectType.Quantity.RunningSpeed))
 
                         is KHReadRequest.SexualActivity ->
-                            addAll(quantitySamplesFor(ObjectType.Category.SexualActivity))
+                            addAll(categorySamplesFor(ObjectType.Category.SexualActivity))
 
                         is KHReadRequest.SleepSession ->
-                            addAll(quantitySamplesFor(ObjectType.Category.SleepSession))
+                            addAll(categorySamplesFor(ObjectType.Category.SleepSession))
 
                         is KHReadRequest.Speed -> Unit
 
@@ -1833,8 +1833,10 @@ actual class KHealth {
                     }
                 }
             }.toTypedArray()
+            println("quantitySamplesList: ${quantitySamplesList.size}")
 
             mergeHKSamples(*quantitySamplesList).mapNotNull { hkSamples ->
+                println("HK Samples: $hkSamples")
                 when (request) {
                     is KHReadRequest.ActiveCaloriesBurned -> {
                         val sample = hkSamples.first() as HKQuantitySample
@@ -2431,7 +2433,7 @@ actual class KHealth {
     @OptIn(UnsafeNumber::class)
     private suspend fun KHReadRequest.quantitySamplesFor(
         vararg hkObjectTypes: HKSampleType
-    ): List<List<HKSample>?> {
+    ): List<List<HKQuantitySample>?> {
         val predicate = HKQuery.predicateForSamplesWithStartDate(
             startDate = this.startDateTime.toNSDate(),
             endDate = this.endDateTime.toNSDate(),
@@ -2454,10 +2456,57 @@ actual class KHealth {
                         limit = limit,
                         sortDescriptors = sortDescriptors,
                     ) { _, data, error ->
+//                        println("query response: $data")
                         error.logToConsole(type)
+                        val instancesHKSample = data?.filterIsInstance<HKQuantitySample>()
+//                        println("instancesHKSample: $instancesHKSample")
+//                        val instancesHKCat = instancesHKSample?.filterNot { it is HKCategorySample }
+//                        println("instancesHKCat: $instancesHKCat")
+
                         continuation.resume(
-                            data?.filterIsInstance<HKSample>()
-                                ?.filterNot { it is HKCategorySample }
+                            instancesHKSample
+                        )
+                    }
+                )
+            }
+        }
+    }
+
+    @OptIn(UnsafeNumber::class)
+    private suspend fun KHReadRequest.categorySamplesFor(
+        vararg hkObjectTypes: HKSampleType
+    ): List<List<HKCategorySample>?> {
+        val predicate = HKQuery.predicateForSamplesWithStartDate(
+            startDate = this.startDateTime.toNSDate(),
+            endDate = this.endDateTime.toNSDate(),
+            options = HKQueryOptionStrictStartDate
+        )
+        val limit = HKObjectQueryNoLimit
+        val sortDescriptors = listOf(
+            NSSortDescriptor.sortDescriptorWithKey(
+                HKSampleSortIdentifierStartDate,
+                ascending = false
+            )
+        )
+
+        return hkObjectTypes.map { type ->
+            suspendCoroutine { continuation ->
+                store.executeQuery(
+                    HKSampleQuery(
+                        sampleType = type,
+                        predicate = predicate,
+                        limit = limit,
+                        sortDescriptors = sortDescriptors,
+                    ) { _, data, error ->
+//                        println("query response: $data")
+                        error.logToConsole(type)
+                        val instancesHKSample = data?.filterIsInstance<HKCategorySample>()
+//                        println("instancesHKSample: $instancesHKSample")
+//                        val instancesHKCat = instancesHKSample?.filterNot { it is HKCategorySample }
+//                        println("instancesHKCat: $instancesHKCat")
+
+                        continuation.resume(
+                            instancesHKSample
                         )
                     }
                 )

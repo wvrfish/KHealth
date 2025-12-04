@@ -381,6 +381,18 @@ fun sampleWorkoutData(kHealth: KHealth) {
     }
 }
 
+fun sampleSleepData(kHealth: KHealth) {
+    coroutineScope.launch {
+
+        val data = kHealth.readRecords(KHReadRequest.SleepSession(
+            startTime = Clock.System.now().minus(30.days),
+            endTime = Clock.System.now()
+        ))
+        println("Sleep data: $data")
+
+    }
+}
+
 fun sampleReadData(kHealth: KHealth) {
     coroutineScope.launch {
         val startTime = Clock.System.now().minus(1.days)
