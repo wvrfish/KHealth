@@ -274,6 +274,10 @@ sealed class KHPermission {
         val write: Boolean = false
     ) : KHPermission()
 
+    data class TotalCaloriesBurned(
+        val read: Boolean = false,
+        val write: Boolean = false
+    ) : KHPermission()
     data class Vo2Max(
         val read: Boolean = false,
         val write: Boolean = false

@@ -86,6 +86,7 @@ val permissions = arrayOf(
     KHPermission.SleepSession(read = true, write = true),
     KHPermission.Speed(read = true, write = true),
     KHPermission.StepCount(read = true, write = true),
+    KHPermission.TotalCaloriesBurned(read = true, write = true),
     KHPermission.Vo2Max(read = true, write = true),
     KHPermission.Weight(read = true, write = true),
     KHPermission.WheelChairPushes(read = true, write = true),

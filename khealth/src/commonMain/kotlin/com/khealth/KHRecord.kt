@@ -606,6 +606,24 @@ sealed class KHRecord {
     ) : KHRecord()
 
     /**
+     * Captures the estimated active energy burned by the user, excluding basal metabolic rate
+     * (BMR). Each record represents the total energy burned over a time interval, so both the
+     * start and end times should be set.
+     *
+     * @param unit Measurement scale of this record
+     * @param value The value of this record
+     * @param startTime The start instant of the interval over which the value this record was
+     * captured
+     * @param endTime The end instant of the interval over which the value this record was captured
+     */
+    data class TotalCaloriesBurned(
+        val unit: KHUnit.Energy,
+        val value: Double,
+        val startTime: Instant,
+        val endTime: Instant
+    ) : KHRecord()
+
+    /**
      * VO2 max is the maximum amount of oxygen the body can utilize during intense exercise,
      * indicating cardiovascular fitness and endurance capacity.
      *

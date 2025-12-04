@@ -23,6 +23,7 @@ import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.records.DistanceRecord
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.HeartRateRecord
+import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.AggregateGroupByDurationRequest
 import androidx.health.connect.client.request.AggregateGroupByPeriodRequest
 import androidx.health.connect.client.request.AggregateRequest
@@ -184,6 +185,7 @@ actual class KHealth {
                     AggregateRequest(
                         metrics = setOf(
                             ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL,
+                            TotalCaloriesBurnedRecord.ENERGY_TOTAL,
                             DistanceRecord.DISTANCE_TOTAL,
                             HeartRateRecord.BPM_AVG
                         ),
@@ -193,8 +195,10 @@ actual class KHealth {
                         )
                     )
                 )
-                val activeCals =
-                    response[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]?.inKilocalories
+
+                val activeCals = response[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]?.inKilocalories
+                    ?: response[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories
+
                 val distance = response[DistanceRecord.DISTANCE_TOTAL]?.inMeters
                 val avgHR = response[HeartRateRecord.BPM_AVG]
 

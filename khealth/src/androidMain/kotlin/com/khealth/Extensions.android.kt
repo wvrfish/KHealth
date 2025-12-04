@@ -55,6 +55,7 @@ import androidx.health.connect.client.records.SexualActivityRecord
 import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.SpeedRecord
 import androidx.health.connect.client.records.StepsRecord
+import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.records.Vo2MaxRecord
 import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.records.WheelchairPushesRecord
@@ -523,6 +524,7 @@ internal fun KHPermission.toPermissions(): Set<Pair<String, KHPermissionType>> {
                 is KHPermission.SleepSession -> entry.read
                 is KHPermission.Speed -> entry.read
                 is KHPermission.StepCount -> entry.read
+                is KHPermission.TotalCaloriesBurned -> entry.read
                 is KHPermission.Vo2Max -> entry.read
                 is KHPermission.Weight -> entry.read
                 is KHPermission.WheelChairPushes -> entry.read
@@ -603,6 +605,7 @@ internal fun KHPermission.toPermissions(): Set<Pair<String, KHPermissionType>> {
                 is KHPermission.SleepSession -> entry.write
                 is KHPermission.Speed -> entry.write
                 is KHPermission.StepCount -> entry.write
+                is KHPermission.TotalCaloriesBurned -> entry.write
                 is KHPermission.Vo2Max -> entry.write
                 is KHPermission.Weight -> entry.write
                 is KHPermission.WheelChairPushes -> entry.write
@@ -822,6 +825,9 @@ internal fun Array<out KHPermission>.toPermissionsWithStatuses(
         is KHPermission.StepCount ->
             KHPermission.StepCount(read = readGranted, write = writeGranted)
 
+        is KHPermission.TotalCaloriesBurned ->
+            KHPermission.TotalCaloriesBurned(read = readGranted, write = writeGranted)
+
         is KHPermission.Vo2Max ->
             KHPermission.Vo2Max(read = readGranted, write = writeGranted)
 
@@ -869,6 +875,7 @@ internal fun KHReadRequest.toRecordClass(): KClass<out Record>? = when (this) {
     is KHReadRequest.SleepSession -> SleepSessionRecord::class
     is KHReadRequest.Speed -> SpeedRecord::class
     is KHReadRequest.StepCount -> StepsRecord::class
+    is KHReadRequest.TotalCaloriesBurned -> TotalCaloriesBurnedRecord::class
     is KHReadRequest.Vo2Max -> Vo2MaxRecord::class
     is KHReadRequest.Weight -> WeightRecord::class
     is KHReadRequest.WheelChairPushes -> WheelchairPushesRecord::class
@@ -911,6 +918,7 @@ internal fun KHPermission.toRecordClass(): KClass<out Record>? = when (this) {
     is KHPermission.SleepSession -> SleepSessionRecord::class
     is KHPermission.Speed -> SpeedRecord::class
     is KHPermission.StepCount -> StepsRecord::class
+    is KHPermission.TotalCaloriesBurned -> TotalCaloriesBurnedRecord::class
     is KHPermission.Vo2Max -> Vo2MaxRecord::class
     is KHPermission.Weight -> WeightRecord::class
     is KHPermission.WheelChairPushes -> WheelchairPushesRecord::class
@@ -1311,6 +1319,15 @@ internal fun KHRecord.toHCRecord(): Record? {
             endTime = endTime.toJavaInstant(),
             endZoneOffset = null,
             count = count,
+            metadata = Metadata.manualEntry()
+        )
+
+        is KHRecord.TotalCaloriesBurned -> TotalCaloriesBurnedRecord(
+            startTime = startTime.toJavaInstant(),
+            endTime = endTime.toJavaInstant(),
+            startZoneOffset = null,
+            endZoneOffset = null,
+            energy = unit toNativeEnergyFor value,
             metadata = Metadata.manualEntry()
         )
 
