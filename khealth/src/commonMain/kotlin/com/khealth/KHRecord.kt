@@ -246,6 +246,18 @@ sealed class KHRecord {
         val endTime: Instant,
     ) : KHRecord()
 
+    /**
+     * Captures detailed information about an exercise session.
+     *
+     * @param type The type of exercise that the user is doing
+     * @param startTime The start instant of the interval over which the value this record was
+     * captured
+     * @param endTime The end instant of the interval over which the value this record was captured
+     * @param activeCaloriesBurned Estimated active calories burned during the exercise (where available)
+     * @param distanceCovered Distance covered in meters during the exercise (where available)
+     * @param averageHeartRate Average heart rate during the exercise (where available)
+     * @param heartRateSamples Heart rate samples during the exercise (where available)
+     */
     data class ExerciseFull(
         val type: KHExerciseType,
         val startTime: Instant,
