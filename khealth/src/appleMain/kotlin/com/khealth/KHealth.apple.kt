@@ -410,6 +410,10 @@ actual class KHealth {
                         } else false
                     )
 
+                    is KHPermission.TotalCaloriesBurned -> KHPermission.TotalCaloriesBurned(
+                        write = false
+                    )
+
                     is KHPermission.Vo2Max -> KHPermission.Vo2Max(
                         write = if (permission.write) {
                             store.authorizationStatusForType(ObjectType.Quantity.Vo2Max).isGranted
@@ -687,6 +691,8 @@ actual class KHealth {
                     if (permission.read) readPermissions.add(ObjectType.Quantity.StepCount)
                     if (permission.write) writePermissions.add(ObjectType.Quantity.StepCount)
                 }
+
+                is KHPermission.TotalCaloriesBurned -> Unit
 
                 is KHPermission.Vo2Max -> {
                     if (permission.read) readPermissions.add(ObjectType.Quantity.Vo2Max)
@@ -1455,6 +1461,8 @@ actual class KHealth {
                         )
                     )
 
+                    is KHRecord.TotalCaloriesBurned -> Unit
+
                     is KHRecord.Vo2Max -> samples.add(
                         HKQuantitySample.quantitySampleWithType(
                             quantityType = ObjectType.Quantity.Vo2Max,
@@ -1821,6 +1829,8 @@ actual class KHealth {
 
                         is KHReadRequest.StepCount ->
                             addAll(quantitySamplesFor(ObjectType.Quantity.StepCount))
+
+                        is KHReadRequest.TotalCaloriesBurned -> Unit
 
                         is KHReadRequest.Vo2Max ->
                             addAll(quantitySamplesFor(ObjectType.Quantity.Vo2Max))
@@ -2237,6 +2247,8 @@ actual class KHealth {
                             endTime = sample.endDate.toKotlinInstant(),
                         )
                     }
+
+                    is KHReadRequest.TotalCaloriesBurned -> null
 
                     is KHReadRequest.Vo2Max -> {
                         val sample = hkSamples.first() as HKQuantitySample
