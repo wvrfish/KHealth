@@ -15,6 +15,7 @@
 
 package com.khealth
 
+import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.health.connect.client.HealthConnectClient
@@ -47,8 +48,10 @@ import kotlin.time.toJavaInstant
 import kotlin.time.toKotlinInstant
 
 actual class KHealth {
-    constructor(activity: ComponentActivity) {
-        this.activity = activity
+
+    constructor(context: Context) {
+        this.context = context
+//        this.activity = activity
         this.coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         this.permissionsChannel = Channel()
     }
@@ -66,7 +69,13 @@ actual class KHealth {
         this.isTestMode = true
     }
 
+    fun registerActivity(activity: ComponentActivity) {
+        this.activity = activity
+    }
+
+
     private var activity: ComponentActivity? = null
+    private var context: Context? = null
 
     private lateinit var client: HealthConnectClient
     private val coroutineScope: CoroutineScope
@@ -77,8 +86,8 @@ actual class KHealth {
     private lateinit var permissionsLauncher: ActivityResultLauncher<Set<String>>
 
     actual fun initialise() {
-        if (!::client.isInitialized) client = HealthConnectClient.getOrCreate(activity!!)
-        if (!::permissionsLauncher.isInitialized) {
+        if (!::client.isInitialized) client = HealthConnectClient.getOrCreate(context!!)
+        if (!::permissionsLauncher.isInitialized && activity != null) {
             val permissionContract = PermissionController.createRequestPermissionResultContract()
             permissionsLauncher = activity!!.registerForActivityResult(permissionContract) {
                 coroutineScope.launch {
@@ -90,7 +99,7 @@ actual class KHealth {
 
     actual val isHealthStoreAvailable: Boolean
         get() = testIsHealthStoreAvailable
-            ?: (HealthConnectClient.getSdkStatus(activity!!) == HealthConnectClient.SDK_AVAILABLE)
+            ?: (HealthConnectClient.getSdkStatus(context!!) == HealthConnectClient.SDK_AVAILABLE)
 
     private fun verifyHealthStoreAvailability() {
         if (!isHealthStoreAvailable) throw HealthStoreNotAvailableException
