@@ -2226,10 +2226,16 @@ actual class KHealth {
                     }
 
                     is KHReadRequest.SleepSession -> KHRecord.SleepSession(
-                        samples = hkSamples.filterNotNull().map { hkSample ->
+                        samples = hkSamples.filterNotNull().mapNotNull { hkSample ->
                             val sample = hkSample as HKCategorySample
+                            val stage = try {
+                                sample.value.toKHSleepStage()
+                            } catch (e: IllegalArgumentException) {
+                                //skip samples with unsupported sleep stages (e.g. inBed as this is intended to overlap with other stages)
+                                return@mapNotNull null
+                            }
                             KHSleepStageSample(
-                                stage = sample.value.toKHSleepStage(),
+                                stage = stage,
                                 startTime = sample.startDate.toKotlinInstant(),
                                 endTime = sample.endDate.toKotlinInstant(),
                             )
