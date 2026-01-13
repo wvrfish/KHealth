@@ -1843,10 +1843,10 @@ actual class KHealth {
                     }
                 }
             }.toTypedArray()
-            println("quantitySamplesList: ${quantitySamplesList.size}")
+//            println("quantitySamplesList: ${quantitySamplesList.size}")
 
             mergeHKSamples(*quantitySamplesList).mapNotNull { hkSamples ->
-                println("HK Samples: $hkSamples")
+//                println("HK Samples: $hkSamples")
                 when (request) {
                     is KHReadRequest.ActiveCaloriesBurned -> {
                         val sample = hkSamples.first() as HKQuantitySample
@@ -2391,8 +2391,6 @@ actual class KHealth {
         if (qtyType == null) {
             return emptyList()
         }
-
-        println("Using HKStatisticsCollectionQuery for $qtyType")
 
         val query = HKStatisticsCollectionQuery(
             quantityType = qtyType,
