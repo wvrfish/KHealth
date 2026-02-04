@@ -3,7 +3,7 @@ pluginManagement {
     repositories {
         google()
         gradlePluginPortal()
-        maven { url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
+//        maven { url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
         mavenCentral()
     }
 }
@@ -17,7 +17,7 @@ dependencyResolutionManagement {
     @Suppress("UnstableApiUsage")
     repositories {
         google()
-        maven { url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
+//        maven { url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
         mavenCentral()
     }
 }
